@@ -1,4 +1,7 @@
 function handleRegister() {
+  //disable button
+  buttonDisabled(true);
+  //handle data
   var registrationData = {
     nickname: document.getElementById('nickname').value,
     email: document.getElementById('email').value,
@@ -7,7 +10,7 @@ function handleRegister() {
   };
 
   var regex = {
-    nicknameR: new RegExp('[a-zA-Z0-9_]{4,}'),
+    nicknameR: new RegExp('^[A-Za-z0-9ąćęłńóśźżĄĆĘŁŃÓŚŹŻ_\\s]{4,}$'),
     emailR: new RegExp('[a-z0-9!#$%&\'*+/=?^_`{|}~-]+(?:\\.[a-z0-9!#$%&\'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?'),
     passwordR: new RegExp('.{6,}')
   };
@@ -33,30 +36,32 @@ function handleRegister() {
   if(anyError) {
     var messages = prepareErrorMessages(errors);
     displayErrors(messages);
-    resetInputs(errors);
+    resetInputs();
   }
   else {
-    //remove errors send data to server
-    var closeButton = document.getElementById('closeAlert');
-    if(closeButton !== null) closeButton.click();
+    //remove errors and display loading
+    displayLoadingSpinner();
+    //send post data and wait for response
+    var errors = sendData(registrationData);
   }
 }
 
-function resetInputs(errors)
+function sendData(data)
+{
+  setTimeout(displaySuccessMessage, 2000);
+}
+
+function resetInputs()
 {
   document.getElementById('password').value = "";
   document.getElementById('passwordRepeat').value = "";
-  if(errors.nicknameE)
-    document.getElementById('nickname').value = "";
-  if(errors.emailE)
-    document.getElementById('email').value = "";
 }
 
 function prepareErrorMessages(errors)
 {
   var errorMessages = [];
   if(errors.nicknameE)
-    errorMessages.push('Niepoprawna nazwa użytkownika (musi składać się z co najmniej 4 znaków, może zawierać jedynie małe i duże litery, cyfry oraz znak podkreślenia).');
+    errorMessages.push('Niepoprawna nazwa użytkownika (musi składać się z co najmniej 4 znaków, może zawierać jedynie małe i duże litery, cyfry, spacje oraz znaki podkreślenia).');
   if(errors.emailE)
     errorMessages.push('Niepoprawny adres email.');
   if(errors.passwordE || errors.passwordRepeatE)
@@ -67,29 +72,78 @@ function prepareErrorMessages(errors)
 }
 
 function displayErrors(messages) {
-  console.log("displaying errors");
-   var errorsString = '';
-   for(var i = 0; i < messages.length; i++) {
-     if(i == messages.length-1) {
-       errorsString += '<p class="mb-0">'+messages[i]+'</p>'
-     }
-     else {
-       errorsString += '<p>'+messages[i]+'</p><hr>'
-     }
-   }
+  if($("#alertContainer").html() != '') {
+    $("#alertContainer").fadeOut("400","linear", function(){
+      prepareContainer(messages);
+      $("#alertContainer").fadeIn("400", "linear", function(){
+        buttonDisabled(false);
+      });
+    });
+  }
+  else {
+    prepareContainer(messages);
+    $("#alertContainer").fadeIn("400", "linear", function() {
+      buttonDisabled(false);
+    });
+  }
+}
 
-   var container = document.getElementById("alertContainer")
-   var alert = '<div id="registerAlert" class="mt-4 mb-0 alert alert-danger alert-dismissible fade" role="alert">'+
-   '<button type="button" id="closeAlert" class="close" data-dismiss="alert" aria-label="Close">'+
-   '<span aria-hidden="true">&times;</span>'+
-   '</button>'+
-   errorsString+
-   '</div>';
-   container.innerHTML = alert;
+function prepareContainer(messages)
+{
+  var errorsString = '';
+  for(var i = 0; i < messages.length; i++) {
+    if(i == messages.length-1) {
+      errorsString += '<p class="mb-0">'+messages[i]+'</p>'
+    }
+    else {
+      errorsString += '<p>'+messages[i]+'</p><hr>'
+    }
+  }
 
-   var fadeIn = function () {
-     document.getElementById("registerAlert").classList.add('in');
-   };
+  var container = document.getElementById("alertContainer")
+  container.style.display = "none";
+  var alert = '<div id="registerAlert" class="mt-4 mb-0 alert alert-danger alert-dismissible" role="alert">'+
+  '<button type="button" id="closeAlert" class="close" data-dismiss="alert" aria-label="Close">'+
+  '<span aria-hidden="true">&times;</span>'+
+  '</button>'+
+  errorsString+
+  '</div>';
+  container.innerHTML = alert;
+}
 
-   setTimeout(fadeIn, 10);
+function displaySuccessMessage()
+{
+  $("#loadingContainer").fadeOut("600","linear", function(){
+    var container = document.getElementById("alertContainer")
+    var alert = '<div id="registerSuccess" class="mt-4 mb-0 alert alert-success alert-dismissible" role="alert">'+
+    '<button type="button" id="closeAlert" class="close" data-dismiss="alert" aria-label="Close">'+
+    '<span aria-hidden="true">&times;</span>'+
+    '</button>'+
+    'Rejestracja przebiegła pomyślnie!'+
+    '</div>';
+    container.style.display =  "none";
+    container.innerHTML = alert;
+    $("#alertContainer").fadeIn("slow","linear");
+    //enable button
+    buttonDisabled(false);
+  });
+}
+
+function displayLoadingSpinner()
+{
+  if($("#alertContainer").html() != '') {
+    $("#alertContainer").fadeOut("400","linear", function() {
+      $("#loadingContainer").fadeIn("600", "linear");
+      $("#loadingSpinner").fadeIn("600", "linear");
+    });
+  }
+  else {
+      $("#loadingContainer").fadeIn("600", "linear");
+      $("#loadingSpinner").fadeIn("600", "linear");
+  }
+}
+
+function buttonDisabled(state)
+{
+    $("#registerButton").prop("disabled",state);
 }

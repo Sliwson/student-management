@@ -1,12 +1,9 @@
 /*INDEX*/
-.fade {
-  opacity: 0;
-  -webkit-transition: opacity 0.3s linear;
-  -moz-transition: opacity 0.3s linear;
-  -o-transition: opacity 0.3s linear;
-  transition: opacity 0.3s linear;
+#loadingContainer {
+  display: none;
 }
 
-.fade.in {
-  opacity: 1;
+#loadingSpinner {
+  display: inherit;
+  opacity: inherit;
 }
