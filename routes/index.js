@@ -7,8 +7,19 @@ router.get('/', function(req, res, next) {
 });
 
 /*POST register. */
-router.post('/register', function (req, rest, next) {
-  //check if all needed post variables exist
+router.post('/register/', function (req, res, next) {
+  //verify using register module;
+  var postRegister = require('../modules/postRegister.js');
+  var userData = {
+    name: req.body.nick,
+    email: req.body.email,
+    password: req.body.password
+  };
+  postRegister.verifyData(userData, function(result) {
+    res.writeHead(200, {"Content-Type": "application/json"});
+    res.write(JSON.stringify(result));
+    res.end();
+  });
 });
 
 module.exports = router;

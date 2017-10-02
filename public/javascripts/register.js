@@ -3,10 +3,10 @@ function handleRegister() {
   buttonDisabled(true);
   //handle data
   var registrationData = {
-    nickname: document.getElementById('nickname').value,
-    email: document.getElementById('email').value,
-    password: document.getElementById('password').value,
-    passwordRepeat: document.getElementById('passwordRepeat').value
+    nickname: document.getElementById('nickname').value.trim(),
+    email: document.getElementById('email').value.trim(),
+    password: document.getElementById('password').value.trim(),
+    passwordRepeat: document.getElementById('passwordRepeat').value.trim()
   };
 
   var regex = {
@@ -42,23 +42,45 @@ function handleRegister() {
     //remove errors and display loading
     displayLoadingSpinner();
     //send post data and wait for response
-    var errors = sendData(registrationData);
+    sendData(registrationData);
   }
 }
 
-function sendData(data)
-{
-  setTimeout(displaySuccessMessage, 2000);
+function sendData(data) {
+  var xhttp;
+  if(window.XMLHttpRequest) {
+    xhttp = new XMLHttpRequest();
+  } else {
+    xhttp = new ActiveXObject("Microsoft.XMLHTTP");
+  }
+
+  xhttp.onreadystatechange = function() {
+    if (this.readyState == 4 && this.status == 200) {
+      console.log(this.responseText);
+      var errors = JSON.parse(this.responseText);
+      if(errors.error == "false") {
+        setTimeout(displaySuccessMessage, 700);
+      }
+      else {
+        //handle errors
+        setTimeout(function() {
+          displayBackendErrors(errors.messages)
+        }, 700);
+      }
+    }
+  };
+
+  xhttp.open("POST", "/register", true);
+  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
+  xhttp.send("nick=" + data.nickname + "&email=" + data.email + "&password=" + data.password);
 }
 
-function resetInputs()
-{
+function resetInputs() {
   document.getElementById('password').value = "";
   document.getElementById('passwordRepeat').value = "";
 }
 
-function prepareErrorMessages(errors)
-{
+function prepareErrorMessages(errors) {
   var errorMessages = [];
   if(errors.nicknameE)
     errorMessages.push('Niepoprawna nazwa użytkownika (musi składać się z co najmniej 4 znaków, może zawierać jedynie małe i duże litery, cyfry, spacje oraz znaki podkreślenia).');
@@ -69,6 +91,14 @@ function prepareErrorMessages(errors)
   if(errors.passwordMatchE)
     errorMessages.push('Hasła muszą być jednakowe.');
   return errorMessages;
+}
+
+function displayBackendErrors(messages)
+{
+  $("#loadingSpinner").fadeOut("600", "linear");
+  $("#loadingContainer").fadeOut("600","linear", function() {
+    displayErrors(messages);
+  });
 }
 
 function displayErrors(messages) {
@@ -88,8 +118,7 @@ function displayErrors(messages) {
   }
 }
 
-function prepareContainer(messages)
-{
+function prepareContainer(messages) {
   var errorsString = '';
   for(var i = 0; i < messages.length; i++) {
     if(i == messages.length-1) {
@@ -111,8 +140,7 @@ function prepareContainer(messages)
   container.innerHTML = alert;
 }
 
-function displaySuccessMessage()
-{
+function displaySuccessMessage() {
   $("#loadingContainer").fadeOut("600","linear", function(){
     var container = document.getElementById("alertContainer")
     var alert = '<div id="registerSuccess" class="mt-4 mb-0 alert alert-success alert-dismissible" role="alert">'+
@@ -129,8 +157,7 @@ function displaySuccessMessage()
   });
 }
 
-function displayLoadingSpinner()
-{
+function displayLoadingSpinner() {
   if($("#alertContainer").html() != '') {
     $("#alertContainer").fadeOut("400","linear", function() {
       $("#loadingContainer").fadeIn("600", "linear");
@@ -143,7 +170,6 @@ function displayLoadingSpinner()
   }
 }
 
-function buttonDisabled(state)
-{
+function buttonDisabled(state) {
     $("#registerButton").prop("disabled",state);
 }
