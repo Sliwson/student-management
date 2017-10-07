@@ -5,6 +5,8 @@ var logger = require('morgan');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var hbs = require('express-handlebars');
+var session = require('express-session');
+var MongoStore = require('connect-mongo')(session);
 
 var index = require('./routes/index');
 
@@ -22,6 +24,12 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(session({
+    secret: 'j7q3vqj4v5j709q3jv9k309q874x',
+    resave: false,
+    saveUninitialized: false,
+    store: new MongoStore({ url: 'mongodb://localhost:27017/student-management' })
+}));
 
 app.use('/', index);
 

@@ -1,9 +1,9 @@
 /*INDEX*/
-#loadingContainer {
+#loadingContainer, #loadingContainerLogin {
   display: none;
 }
 
-#loadingSpinner {
+#loadingSpinner, #loadingSpinnerLogin {
   display: inherit;
   opacity: inherit;
 }

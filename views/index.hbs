@@ -37,15 +37,19 @@
           <h2 class = "display-3">Logowanie</h2>
           <br>
           <div class = "input-group">
-            <input type = "email" id = "emailLogin" placeholder = "Email" class="form-control">
+            <input type = "email" id = "emailLogin" placeholder = "Email" class="form-control enter-wait-login">
           </div>
           <br>
           <div class = "input-group">
-            <input type = "password" id = "passwordLogin" placeholder = "Hasło" class="form-control">
+            <input type = "password" id = "passwordLogin" placeholder = "Hasło" class="form-control enter-wait-login">
           </div>
           <br>
           <div class = "input-group">
-            <button class = "btn btn-outline-primary" onclick = "handleLogin()">Zaloguj się</button>
+            <button id = "loginButton" class = "btn btn-outline-primary" onclick = "handleLogin()">Zaloguj się</button>
+          </div>
+          <div id = "alertContainerLogin"></div>
+          <div id = "loadingContainerLogin">
+            <img id = "loadingSpinnerLogin" src="images/infinity.svg" alt = "Loading spinner">
           </div>
         </div>
       </div>

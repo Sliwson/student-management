@@ -1,10 +1,11 @@
 var bcrypt = require('bcrypt');
 const saltRounds = 10;
+var indexFunctions = require('./indexFunctions');
 
 module.exports = {
   verifyData: function(data, callback) {
       //check if everything is string
-      if(!checkString(data)) {
+      if(!indexFunctions.checkString(data)) {
         return (callback(errors.dataError));
       }
 
@@ -18,21 +19,22 @@ module.exports = {
 
       //check email and nickname repetition
       var nameUsed = false, emailUsed = false;
-      var nameFind  = collection.find({name: data.name},{limit:1},function(e, docs){
-        nameUsed = !isEmpty(docs);
-        console.log(nameUsed);
+      collection.find({name: data.name},{limit:1},function(e, docs) {
+        nameUsed = !indexFunctions.isEmpty(docs);
 
         collection.find({email: data.email},{limit:1}).then((docs) => {
-          emailUsed = !isEmpty(docs);
-          console.log(emailUsed);
+          emailUsed = !indexFunctions.isEmpty(docs);
 
           if(nameUsed && emailUsed) {
+            database.close();
             return (callback(errors.bothUsed));
           }
           else if (nameUsed) {
+            database.close();
             return (callback(errors.nameUsed));
           }
           else if (emailUsed) {
+            database.close();
             return (callback(errors.emailUsed));
           }
 
@@ -41,6 +43,7 @@ module.exports = {
             data.password = bcrypt.hashSync(data.password, saltRounds);
           }
           catch(err) {
+            database.close();
             return (callback(errors.hashingError));
           }
 
@@ -87,12 +90,6 @@ var errors = {
   }
 };
 
-function checkString(data) {
-  if(typeof(data.name) == "string" && typeof(data.email) == "string" && typeof(data.password) == "string")
-    return true;
-  else return false;
-}
-
 function checkRegex(data) {
   var regex = {
     nicknameR: new RegExp('^[A-Za-z0-9ąćęłńóśźżĄĆĘŁŃÓŚŹŻ_\\s]{4,}$'),
@@ -103,7 +100,7 @@ function checkRegex(data) {
   var errors = {
     nicknameE: !regex.nicknameR.test(data.name),
     emailE: !regex.emailR.test(data.email),
-    passwordE: !regex.passwordR.test(data.password),
+    passwordE: !regex.passwordR.test(data.password)
   };
 
   return anyError = function() {
@@ -112,12 +109,4 @@ function checkRegex(data) {
     }
     return false;
   }();
-}
-
-function isEmpty(obj) {
-    for(var prop in obj) {
-        if(obj.hasOwnProperty(prop))
-            return false;
-    }
-    return true;
 }
