@@ -1,8 +1,9 @@
 var session = require('express-session');
 
 module.exports = {
-  authenticateUser: function(req, id) {
+  authenticateUser: function(req, id, name) {
     req.session.userid = id;
+    req.session.username = name;
   },
 
   checkLogin: function(req) {
@@ -12,9 +13,11 @@ module.exports = {
 
   logout: function(req) {
     req.session.userid = 0;
+    req.session.username = 0;
   },
 
-  debugSession: function(req) {
-    console.log(req.session.userid);
+  getUsername: function(req) {
+    if(req.session.username) return req.session.username;
+    else return "Anonymous";
   }
 };

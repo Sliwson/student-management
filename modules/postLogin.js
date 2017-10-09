@@ -23,6 +23,7 @@ module.exports = {
         }
         var passwordHash = docs[0].password;
         var id = docs[0]._id;
+        var username = docs[0].name;
         bcrypt.compare(data.password, passwordHash, function(err, res) {
           if(err) {
             database.close();
@@ -30,7 +31,7 @@ module.exports = {
           }
           if(res == true) {
             database.close();
-            return(callback(errors.noError, id));
+            return(callback(errors.noError, id, username));
           }
           else {
             database.close();

@@ -32,7 +32,8 @@ router.post('/register/', function (req, res, next) {
 /*GET home*/
 router.get('/home/', function(req, res, next) {
   if(loginSession.checkLogin(req)) {
-    res.render('home', { title: 'Składy', headScripts: [] });
+    name = loginSession.getUsername(req);
+    res.render('home', { title: 'Składy', headScripts: [], username: name });
   }
   else {
     res.redirect('/');
@@ -45,9 +46,9 @@ router.post('/login/', function (req, res, next) {
     email: req.body.email,
     password: req.body.password
   };
-  postLogin.verifyData(loginData, function(result, id = '0') {
+  postLogin.verifyData(loginData, function(result, id=0, username='') {
     if(result.error == "false") {
-        loginSession.authenticateUser(req, id);
+        loginSession.authenticateUser(req, id, username);
     }
     res.writeHead(200, {"Content-Type": "application/json"});
     res.write(JSON.stringify(result));
