@@ -3,6 +3,7 @@ var router = express.Router();
 var postRegister = require('../modules/postRegister');
 var postLogin = require('../modules/postLogin');
 var loginSession = require('../modules/loginSession');
+var storesManager = require('../modules/storesManager');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -10,7 +11,7 @@ router.get('/', function(req, res, next) {
     res.redirect('/home/');
   }
   else {
-    res.render('index', { title: 'Strona główna', headScripts: ['/javascripts/viewController.js','/javascripts/register.js', '/javascripts/login.js','/javascripts/inputfieldEnter.js'] });
+    res.render('index', { title: 'Strona główna', headScripts: ['/javascripts/viewController.js','/javascripts/register.js', '/javascripts/login.js','/javascripts/inputfieldEnters/indexEnter.js'] });
   }
 });
 
@@ -29,17 +30,6 @@ router.post('/register/', function (req, res, next) {
   });
 });
 
-/*GET home*/
-router.get('/home/', function(req, res, next) {
-  if(loginSession.checkLogin(req)) {
-    name = loginSession.getUsername(req);
-    res.render('home', { title: 'Składy', headScripts: [], username: name });
-  }
-  else {
-    res.redirect('/');
-  }
-});
-
 /*POST login. */
 router.post('/login/', function (req, res, next) {
   var loginData = {
@@ -54,6 +44,38 @@ router.post('/login/', function (req, res, next) {
     res.write(JSON.stringify(result));
     res.end();
   });
+});
+
+/*POST Add store*/
+router.post('/addStore/', function(req, res, next) {
+  var name = req.body.name;
+  storesManager.verifyData(name, req, function(result) {
+    res.writeHead(200, {"Content-Type": "application/json"});
+    res.write(JSON.stringify(result));
+    res.end();
+  });
+});
+
+/*POST Get stores*/
+router.post('/getStores/', function(req, res, next) {
+  storesManager.getStores(req, function(result) {
+    res.writeHead(200, {"Content-Type": "application/json"});
+    res.write(JSON.stringify(result));
+    res.end();
+  });
+});
+
+/*GET home*/
+router.get('/home/', function(req, res, next) {
+  if(loginSession.checkLogin(req)) {
+    name = loginSession.getUsername(req);
+    res.render('home', { title: 'Składy', headScripts: ['/javascripts/onLoadController.js',
+    '/javascripts/viewController.js', '/javascripts/storesController.js', '/javascripts/inputfieldEnters/homeEnter.js',
+    '/javascripts/refreshStores.js'], username: name});
+  }
+  else {
+    res.redirect('/');
+  }
 });
 
 /*LOGOUT*/

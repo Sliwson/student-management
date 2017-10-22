@@ -59,7 +59,7 @@ function sendData(data) {
       var errors = JSON.parse(this.responseText);
       if(errors.error == "false") {
         setTimeout( function () {
-          displaySuccessMessage("#loadingContainer", "#alertContainer", "#registerButton");
+          displaySuccessMessage("Rejestracja przebiegła pomyślnie!","#loadingContainer", "#alertContainer", "#registerButton");
         }, 700);
       }
       else {

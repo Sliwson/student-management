@@ -44,14 +44,14 @@ function prepareContainer(messages, alertContainer) {
   container.innerHTML = alert;
 }
 
-function displaySuccessMessage(loadingContainer, alertContainer, button) {
+function displaySuccessMessage(message, loadingContainer, alertContainer, button) {
   $(loadingContainer).fadeOut("600","linear", function(){
     var container = $(alertContainer)[0];
     var alert = '<div id="registerSuccess" class="mt-4 mb-0 alert alert-success alert-dismissible" role="alert">'+
     '<button type="button" id="closeAlert" class="close" data-dismiss="alert" aria-label="Close">'+
     '<span aria-hidden="true">&times;</span>'+
     '</button>'+
-    'Rejestracja przebiegła pomyślnie!'+
+    message +
     '</div>';
     container.style.display =  "none";
     container.innerHTML = alert;

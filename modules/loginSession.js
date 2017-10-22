@@ -19,5 +19,10 @@ module.exports = {
   getUsername: function(req) {
     if(req.session.username) return req.session.username;
     else return "Anonymous";
+  },
+
+  getId: function(req) {
+    if(req.session.userid) return req.session.userid;
+    else return "0";
   }
 };

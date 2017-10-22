@@ -1,9 +1,18 @@
 /*INDEX*/
-#loadingContainer, #loadingContainerLogin {
+#loadingContainer, #loadingContainerLogin, #loadingContainerAdd {
   display: none;
 }
 
-#loadingSpinner, #loadingSpinnerLogin {
+#loadingSpinner, #loadingSpinnerLogin, #loadingSpinnerAdd {
   display: inherit;
   opacity: inherit;
+}
+
+/*HOME*/
+.inline-header {
+  display: inline;
+}
+
+#storesContainer {
+  display: none;
 }

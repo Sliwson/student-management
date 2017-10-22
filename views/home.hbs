@@ -13,20 +13,20 @@
       <h3 class= "display-3">Lista składów</h3>
       <hr>
       <div class = "form-row">
-        <div class = "col-sm-3">
-          <input type="text" class="form-control mr-3" placeholder="Nazwa składu">
+        <div class = "col-lg-6 col-md-6 col-sm-6 col-xs-6">
+          <input id = "storeName" type="text" class="form-control mr-3 enter-wait-create " placeholder="Nazwa składu">
         </div>
         <div class = "col-auto">
-          <a href="#" class=" form-control btn btn-outline-primary">Utwórz nowy skład</a>
+          <button onclick = "addStore()" id = "createButton" class="form-control btn btn-outline-primary">Utwórz nowy skład</button>
         </div>
       </div>
-      <hr>
-      <div class="card">
-        <div class="card-body">
-          <h3 class = "">Kasprowicza 74</h4>
-          <hr>
-          <a href="#" class="btn btn-outline-secondary">Dołącz do tego składu</a>
+      <div>
+        <div id = "alertContainerAdd"></div>
+        <div id = "loadingContainerAdd">
+          <img id = "loadingSpinnerAdd" src="../images/infinity.svg" alt = "Loading spinner">
         </div>
+      </div>
+      <div id = "storesContainer">
       </div>
     </div>
   </div>

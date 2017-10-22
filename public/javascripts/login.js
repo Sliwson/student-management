@@ -1,5 +1,5 @@
 function handleLogin() {
-  buttonDisabled(true, "#registerButton");
+  buttonDisabled(true, "#loginButton");
   //handle data
   var loginData = {
     email: document.getElementById('emailLogin').value.trim(),
@@ -25,7 +25,7 @@ function handleLogin() {
 
   if(anyError) {
     var messages = prepareLoginErrorMessages(errors);
-    displayErrors(messages, "#alertContainerLogin", "#registerButtonLogin");
+    displayErrors(messages, "#alertContainerLogin", "#loginButton");
     resetLoginInputs();
   }
   else {
@@ -51,13 +51,13 @@ function sendLoginData(data) {
         //handle errors
         setTimeout(function() {
           resetLoginInputs();
-          displayBackendErrors(errors.messages, "#alertContainerLogin", "#loadingSpinnerLogin", "#loadingContainerLogin", "loginButtonLogin");
+          displayBackendErrors(errors.messages, "#alertContainerLogin", "#loadingSpinnerLogin", "#loadingContainerLogin", "#loginButton");
         }, 700);
       }
       else {
         //redirect to home
         setTimeout(function() {
-          displaySuccessMessage("#loadingContainerLogin", "#alertContainerLogin", "#registerButtonLogin");
+          displaySuccessMessage("Zalogowano pomyślnie.", "#loadingContainerLogin", "#alertContainerLogin", "#loginButton");
         }, 700);
         setTimeout(function() {
           window.location.assign('/home/');
