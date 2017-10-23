@@ -14,15 +14,18 @@ function addStore() {
   }
   else {
     displayLoadingSpinner("#alertContainerAdd", "#loadingSpinnerAdd", "#loadingContainerAdd");
-    sendData(name);
+    sendData("name=" + name, "/addStore", "Skład dodany pomyślnie.", "#createButton");
   }
 }
 
 function deleteStore(storeId) {
-  console.log("Deleting store :" + storeId);
+  buttonDisabled(true, ".delete-button");
+
+  displayLoadingSpinner("#alertContainerAdd", "#loadingSpinnerAdd", "#loadingContainerAdd");
+  sendData("id=" + storeId, "/deleteStore", "Skład usunięty pomyślnie.", ".delete-button");
 }
 
-function sendData(name) {
+function sendData(postData, url, successMessage, button) {
   var xhttp;
   if(window.XMLHttpRequest) {
     xhttp = new XMLHttpRequest();
@@ -37,23 +40,22 @@ function sendData(name) {
         //handle errors
         setTimeout(function() {
           resetInput();
-          displayBackendErrors(errors.messages, "#alertContainerAdd", "#loadingSpinnerAdd", "#loadingContainerAdd", "#createButton");
+          displayBackendErrors(errors.messages, "#alertContainerAdd", "#loadingSpinnerAdd", "#loadingContainerAdd", button);
         }, 700);
       }
       else {
         //display success message
         setTimeout(function() {
-          displaySuccessMessage("Skład dodany pomyślnie.", "#loadingContainerAdd", "#alertContainerAdd", "#createButton");
+          displaySuccessMessage(successMessage, "#loadingContainerAdd", "#alertContainerAdd", button);
+          refreshStores();
         }, 700);
         resetInput();
-        //refresh stores
-        refreshStores();
       }
     }};
 
-    xhttp.open("POST", "/addStore", true);
+    xhttp.open("POST", url, true);
     xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-    xhttp.send("name=" + name);
+    xhttp.send(postData);
 }
 
 function resetInput() {

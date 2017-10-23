@@ -54,6 +54,30 @@ module.exports = {
       return(callback(storesArray));
     });
   },
+  deleteStore: function(req, storeId, callback) {
+    console.log("Delete: " + storeId);
+
+    var database = require('monk')('localhost:27017/student-management');
+    var collection = database.get('stores');
+
+    collection.find({_id: storeId}, {limit:1}).then((docs) => {
+
+      if(docs.length == 0) return callback(errors.databaseError);
+
+      var newObj = {};
+      newObj.id = docs[0]._id;
+      checkPrivileges(req,docs[0],newObj);
+
+      if(newObj.privileges == 2) {
+        collection.remove({_id: storeId}).then((docs) => {
+          setTimeout(function() {
+            database.close();
+          }, 100);
+          return (callback(errors.noError));
+        });
+      }
+    });
+  }
 };
 
 function checkPrivileges(req, storeObject, newObject) {
@@ -90,5 +114,9 @@ var errors = {
   nameUsed: {
     error: "true",
     messages: ["Ta nazwa jest już w użyciu."]
+  },
+  databaseError: {
+    error: "true",
+    messages: ["Błąd podczas połączenia z bazą danych. Proszę odświeżyć stronę."]
   }
 };

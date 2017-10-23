@@ -17,8 +17,16 @@ function refreshStores() {
         var storeData = result[store];
         storesString += prepareCard(storeData);
       }
-      document.getElementById("storesContainer").innerHTML = storesString;
-      $("#storesContainer").fadeIn("900", "linear");
+      if($("#storesContainer").css('display') == 'hidden') {
+        document.getElementById("storesContainer").innerHTML = storesString;
+        $("#storesContainer").fadeIn("900", "linear");
+      }
+      else {
+        $("#storesContainer").fadeOut("200", "linear", function() {
+          document.getElementById("storesContainer").innerHTML = storesString;
+          $("#storesContainer").fadeIn("600", "linear");
+        });
+      }
     }
   };
 
@@ -70,7 +78,7 @@ function prepareCard(storeData) {
           cardString += '<a href="#" class="btn btn-outline-secondary mr-1">Przejdź do ekranu składu</a>'+
           '<a href="#" class="btn btn-outline-secondary mr-1">Opuść skład</a>';
           if(storeData.privileges == 2) {
-            cardString += '<button onclick = "deleteStore(\''+storeData.id +'\')" class="btn btn-outline-secondary">Usuń skład</button>';
+            cardString += '<button onclick = "deleteStore(\''+storeData.id +'\')" class="btn btn-outline-secondary delete-button">Usuń skład</button>';
           }
         }
         else {

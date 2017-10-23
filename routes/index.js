@@ -65,6 +65,15 @@ router.post('/getStores/', function(req, res, next) {
   });
 });
 
+/*POST Delete store*/
+router.post('/deleteStore/', function(req, res, next) {
+  storesManager.deleteStore(req, req.body.id, function(result) {
+    res.writeHead(200, {"Content-Type": "application/json"});
+    res.write(JSON.stringify(result));
+    res.end();
+  });
+});
+
 /*GET home*/
 router.get('/home/', function(req, res, next) {
   if(loginSession.checkLogin(req)) {
