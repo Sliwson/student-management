@@ -72,6 +72,9 @@ function prepareCard(storeData) {
         else if (storeData.privileges == 1) {
           cardString += '<span class = "text-primary float-right h5 mt-1">Członek</span>';
         }
+        else if (storeData.privileges == -1) {
+          cardString += '<span class = "text-muted float-right h5 mt-1">Wysłano prośbę o dołączenie</span>';
+        }
         cardString += '</div>'+
         '<hr>';
         if(storeData.privileges >= 1) {
@@ -81,8 +84,11 @@ function prepareCard(storeData) {
             cardString += '<button onclick = "deleteStore(\''+storeData.id +'\')" class="btn btn-outline-secondary delete-button">Usuń skład</button>';
           }
         }
-        else {
-          cardString += '<a href="#" class="btn btn-outline-secondary">Dołącz do tego składu</a>';
+        else if(storeData.privileges == 0) {
+          cardString += '<button onclick = "sendRequest(\''+storeData.id +'\')" class="btn btn-outline-secondary request-button">Dołącz do tego składu</button>';
+        }
+        else if(storeData.privileges == -1) {
+          cardString += '<button onclick = "cancelRequest(\''+storeData.id +'\')" class="btn btn-outline-secondary cancel-request-button">Anuluj prośbę o dołączenie</a>';
         }
         cardString += '</div>'+
     '</div>';

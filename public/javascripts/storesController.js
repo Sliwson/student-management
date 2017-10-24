@@ -25,6 +25,18 @@ function deleteStore(storeId) {
   sendData("id=" + storeId, "/deleteStore", "Skład usunięty pomyślnie.", ".delete-button");
 }
 
+function sendRequest(storeId) {
+  buttonDisabled(true, ".request-button");
+  displayLoadingSpinner("#alertContainerAdd", "#loadingSpinnerAdd", "#loadingContainerAdd");
+  sendData("id=" + storeId, "/sendRequest", "Prośba wysłana pomyślnie.", ".request-button");
+}
+
+function cancelRequest(storeId) {
+  buttonDisabled(true, ".cancel-request-button");
+  displayLoadingSpinner("#alertContainerAdd", "#loadingSpinnerAdd", "#loadingContainerAdd");
+  sendData("id=" + storeId, "/cancelRequest", "Prośba anulowana.", ".cancel-request-button");
+}
+
 function sendData(postData, url, successMessage, button) {
   var xhttp;
   if(window.XMLHttpRequest) {

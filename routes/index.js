@@ -24,9 +24,7 @@ router.post('/register/', function (req, res, next) {
     password: req.body.password
   };
   postRegister.verifyData(userData, function(result) {
-    res.writeHead(200, {"Content-Type": "application/json"});
-    res.write(JSON.stringify(result));
-    res.end();
+    sendResHeader(res,result);
   });
 });
 
@@ -40,9 +38,7 @@ router.post('/login/', function (req, res, next) {
     if(result.error == "false") {
         loginSession.authenticateUser(req, id, username);
     }
-    res.writeHead(200, {"Content-Type": "application/json"});
-    res.write(JSON.stringify(result));
-    res.end();
+    sendResHeader(res,result);
   });
 });
 
@@ -50,29 +46,43 @@ router.post('/login/', function (req, res, next) {
 router.post('/addStore/', function(req, res, next) {
   var name = req.body.name;
   storesManager.verifyData(name, req, function(result) {
-    res.writeHead(200, {"Content-Type": "application/json"});
-    res.write(JSON.stringify(result));
-    res.end();
+    sendResHeader(res,result);
   });
 });
 
 /*POST Get stores*/
 router.post('/getStores/', function(req, res, next) {
   storesManager.getStores(req, function(result) {
-    res.writeHead(200, {"Content-Type": "application/json"});
-    res.write(JSON.stringify(result));
-    res.end();
+    sendResHeader(res,result);
   });
 });
 
 /*POST Delete store*/
 router.post('/deleteStore/', function(req, res, next) {
   storesManager.deleteStore(req, req.body.id, function(result) {
-    res.writeHead(200, {"Content-Type": "application/json"});
-    res.write(JSON.stringify(result));
-    res.end();
+    sendResHeader(res,result);
   });
 });
+
+/*POST Send request*/
+router.post('/sendRequest/', function(req, res, next) {
+  storesManager.sendRequest(req, req.body.id, function(result) {
+    sendResHeader(res,result);
+  });
+});
+
+/*POST Cancel request*/
+router.post('/cancelRequest/', function(req, res, next) {
+  storesManager.cancelRequest(req, req.body.id, function(result) {
+    sendResHeader(res,result);
+  });
+});
+
+function sendResHeader(res, result) {
+  res.writeHead(200, {"Content-Type": "application/json"});
+  res.write(JSON.stringify(result));
+  res.end();
+}
 
 /*GET home*/
 router.get('/home/', function(req, res, next) {
