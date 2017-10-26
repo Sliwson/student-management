@@ -97,6 +97,35 @@ router.get('/home/', function(req, res, next) {
   }
 });
 
+/*GET store page */
+router.get('/store/:storeId', function(req, res, next) {
+  var storeId = req.params.storeId;
+
+  if(loginSession.checkLogin(req)) {
+    storesManager.getStoreProperties(req, storeId, function(errors, data) {
+      name = loginSession.getUsername(req);
+      if(errors.error == "true") {
+        res.render('storeError', { title: "Wystąpił błąd", messages: errors.messages, headScripts: [], username: name});
+      }
+      else {
+          console.log(data);
+          if(data.privileges == 2) {
+            res.render('store', { title: data.name, headScripts: [], username: name, admin: true});
+          }
+          else if (data.privileges == 1) {
+            res.render('store', { title: data.name, headScripts: [], username: name, admin: false});
+          }
+          else {
+            res.render('storeError', { title: "Wystąpił błąd", messages: ["Nie jesteś członkiem tego składu!"], headScripts: [], username: name});
+          }
+      }
+    });
+  }
+  else {
+    res.redirect('/');
+  }
+});
+
 /*LOGOUT*/
 router.get('/logout/', function (req, res, next) {
   loginSession.logout(req);

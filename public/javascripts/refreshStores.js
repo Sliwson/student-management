@@ -78,10 +78,12 @@ function prepareCard(storeData) {
         cardString += '</div>'+
         '<hr>';
         if(storeData.privileges >= 1) {
-          cardString += '<a href="#" class="btn btn-outline-secondary mr-1">Przejdź do ekranu składu</a>'+
-          '<a href="#" class="btn btn-outline-secondary mr-1">Opuść skład</a>';
+          cardString += '<a href="../store/' + storeData.id + '" class="btn btn-outline-secondary mr-1">Przejdź do ekranu składu</a>';
           if(storeData.privileges == 2) {
             cardString += '<button onclick = "deleteStore(\''+storeData.id +'\')" class="btn btn-outline-secondary delete-button">Usuń skład</button>';
+          }
+          else {
+            cardString += '<a href="#" class="btn btn-outline-secondary mr-1">Opuść skład</a>';
           }
         }
         else if(storeData.privileges == 0) {

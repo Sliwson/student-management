@@ -11,14 +11,18 @@ function displayErrors(messages, alertContainer, button) {
     $(alertContainer).fadeOut("400","linear", function(){
       prepareContainer(messages, alertContainer);
       $(alertContainer).fadeIn("400", "linear", function(){
-        buttonDisabled(false,button);
+        setTimeout(100, function() {
+          buttonDisabled(false,button);
+        });
       });
     });
   }
   else {
     prepareContainer(messages, alertContainer);
     $(alertContainer).fadeIn("400", "linear", function() {
-      buttonDisabled(false, button);
+      setTimeout(100, function() {
+        buttonDisabled(false,button);
+      });
     });
   }
 }
@@ -57,7 +61,9 @@ function displaySuccessMessage(message, loadingContainer, alertContainer, button
     container.innerHTML = alert;
     $(alertContainer).fadeIn("slow","linear");
     //enable button
-    buttonDisabled(false, button);
+    setTimeout(100, function() {
+      buttonDisabled(false,button);
+    });
   });
 }
 

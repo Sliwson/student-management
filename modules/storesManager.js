@@ -135,6 +135,29 @@ module.exports = {
         return (callback(errors.permissionError));
       }
     });
+  },
+  getStoreProperties: function (req, storeId, callback) {
+    var database = require('monk')('localhost:27017/student-management');
+    var collection = database.get('stores');
+    if(storeId.length != 24) return callback(errors.noStoreError, null);
+    else {
+      var hej = collection.find({}, function (err, docs) {
+        if(docs.length == 0) return callback(errors.noStoreError, null);
+        if(err != null) return callback(errors.databaseError, null);
+        for(var a = 0; a < docs.length; a++) {
+          if(docs[a]._id == storeId) {
+            //we got a matching store
+            var dbObj = docs[a];
+            var newObj = {};
+            newObj.id = dbObj._id;
+            newObj.name = dbObj.name;
+            checkPrivileges(req,dbObj,newObj);
+            return callback(errors.noError, newObj);
+          }
+        }
+        return callback(errors.noStoreError, null);
+      });
+    }
   }
 };
 
@@ -196,5 +219,9 @@ var errors = {
   permissionError: {
     error: "true",
     messages: ["Brak uprawnień do wykonania tej operacji."]
+  },
+  noStoreError: {
+    error: "true",
+    messages: ["Nie ma takiego składu."]
   }
 };
