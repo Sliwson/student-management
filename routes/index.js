@@ -110,10 +110,10 @@ router.get('/store/:storeId', function(req, res, next) {
       else {
           console.log(data);
           if(data.privileges == 2) {
-            res.render('store', { title: data.name, headScripts: [], username: name, admin: true});
+            res.render('store', { title: data.name, headScripts: ['/javascripts/pagesController.js'], username: name, admin: true});
           }
           else if (data.privileges == 1) {
-            res.render('store', { title: data.name, headScripts: [], username: name, admin: false});
+            res.render('store', { title: data.name, headScripts: ['/javascripts/pagesController.js'], username: name, admin: false});
           }
           else {
             res.render('storeError', { title: "Wystąpił błąd", messages: ["Nie jesteś członkiem tego składu!"], headScripts: [], username: name});

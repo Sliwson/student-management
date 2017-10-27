@@ -14,21 +14,26 @@
         <div class = "card-body">
           <nav class="navbar navbar-light">
             <ul class = "navbar-nav">
-              <li class="nav-item active">
-                <a class="nav-link h4" href="#">Strona główna</a>
+              <li id = "main" class="nav-item active">
+                <a href = "#" class="nav-link h4" onclick = 'changePage("main")'>Strona główna</a>
               </li>
-              <li class="nav-item">
-                <a class="nav-link h4" href="#">Rozliczenia</a>
+              <li  id = "payoff" class="nav-item">
+                <a class="nav-link h4" href="#" onclick = 'changePage("payoff")'>Rozliczenia</a>
               </li>
-              <li class="nav-item">
-                <a class="nav-link h4" href="#">Sprzątanie</a>
+              <li id = "cleaning" class="nav-item">
+                <a class="nav-link h4" href="#" onclick = 'changePage("cleaning")'>Sprzątanie</a>
               </li>
-              <li class="nav-item">
-                <a class="nav-link h4" href="#">Zadania</a>
+              <li id = "tasks" class="nav-item">
+                <a class="nav-link h4" href="#" onclick = 'changePage("tasks")'>Zadania</a>
               </li>
-              <li class="nav-item">
-                <a class="nav-link h4" href="#">Ustawienia</a>
+              <li id = "settings" class="nav-item">
+                <a class="nav-link h4" href="#" onclick = 'changePage("settings")'>Ustawienia</a>
               </li>
+              {{#if admin}}
+              <li id = "administration" class="nav-item">
+                <a class="nav-link h4" href="#" onclick = 'changePage("administration")'>Administracja</a>
+              </li>
+              {{/if}}
               <li class="nav-item">
                 <a class="nav-link h4" href="../">Powrót</a>
               </li>
@@ -38,8 +43,8 @@
       </div>
     </div>
     <div class = "col ml-0">
-      <div class = "card">
-        <div class = "card-body">
+      <div class = "card" id = "content-container">
+        <div class = "card-body" id = "page-content">
           <h3 class= "display-3">Strona główna</h3>
         </div>
       </div>
