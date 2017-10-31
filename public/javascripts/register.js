@@ -57,7 +57,7 @@ function sendData(data) {
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
       var errors = JSON.parse(this.responseText);
-      if(errors.error == "false") {
+      if(errors.error == false) {
         setTimeout( function () {
           displaySuccessMessage("Rejestracja przebiegła pomyślnie!","#loadingContainer", "#alertContainer", "#registerButton");
         }, 700);

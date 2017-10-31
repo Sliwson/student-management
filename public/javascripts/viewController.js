@@ -41,7 +41,7 @@ function prepareContainer(messages, alertContainer) {
   container.style.display = "none";
   var alert = '<div id="registerAlert" class="mt-4 mb-0 alert alert-danger alert-dismissible" role="alert">'+
   '<button type="button" id="closeAlert" class="close" data-dismiss="alert" aria-label="Close">'+
-  '<span aria-hidden="true">&times;</span>'+
+  '<span aria-hidden=true>&times;</span>'+
   '</button>'+
   errorsString+
   '</div>';
@@ -53,7 +53,7 @@ function displaySuccessMessage(message, loadingContainer, alertContainer, button
     var container = $(alertContainer)[0];
     var alert = '<div id="registerSuccess" class="mt-4 mb-0 alert alert-success alert-dismissible" role="alert">'+
     '<button type="button" id="closeAlert" class="close" data-dismiss="alert" aria-label="Close">'+
-    '<span aria-hidden="true">&times;</span>'+
+    '<span aria-hidden=true>&times;</span>'+
     '</button>'+
     message +
     '</div>';

@@ -1,46 +1,39 @@
 var indexFunctions = require('./indexFunctions');
 var loginSession = require('./loginSession');
+var databaseConnection = require('./databaseConnection');
 
 module.exports = {
+  database: databaseConnection.db,
+
   verifyData: function(name, req, callback) {
     if(checkRegex(name)) {
       return (callback(errors.dataError));
     }
 
-    var database = require('monk')('localhost:27017/student-management');
-    var collection = database.get('stores');
+    var collection = this.database.get('stores');
 
     collection.find({name: name},{limit:1}, function(e, docs) {
       if(!indexFunctions.isEmpty(docs)) {
-        database.close();
         return (callback(errors.nameUsed));
       }
       else {
         var insertObject = {
           name: name,
           admin: loginSession.getId(req),
-          members: [0],
-          pending: [0]
+          members: [{id: "0", name: "Anonymous"}],
+          pending: [{id: "0", name: "Anonymous"}],
+          rejected: [{id: "0", name: "Anonymous"}]
         };
 
         collection.insert(insertObject);
-
-        setTimeout(function() {
-          database.close();
-        }, 100);
 
         return (callback(errors.noError));
       }
     });
   },
   getStores: function(req,callback) {
-    var database = require('monk')('localhost:27017/student-management');
-    var collection = database.get('stores');
-
+    var collection = this.database.get('stores');
     collection.find({}).then((docs) => {
-      setTimeout(function() {
-        database.close();
-      }, 100);
 
       var storesArray = [];
 
@@ -56,8 +49,7 @@ module.exports = {
     });
   },
   deleteStore: function(req, storeId, callback) {
-    var database = require('monk')('localhost:27017/student-management');
-    var collection = database.get('stores');
+    var collection = this.database.get('stores');
 
     collection.find({_id: storeId}, {limit:1}).then((docs) => {
 
@@ -65,13 +57,11 @@ module.exports = {
 
       var newObj = {};
       newObj.id = docs[0]._id;
+
       checkPrivileges(req,docs[0],newObj);
 
       if(newObj.privileges == 2) {
         collection.remove({_id: storeId}).then((docs) => {
-          setTimeout(function() {
-            database.close();
-          }, 100);
           return (callback(errors.noError));
         });
       }
@@ -81,8 +71,8 @@ module.exports = {
     });
   },
   sendRequest: function(req, storeId, callback) {
-    var database = require('monk')('localhost:27017/student-management');
-    var collection = database.get('stores');
+    var collection = this.database.get('stores');
+
     collection.find({_id: storeId}, {limit:1}).then((docs) => {
       if(docs.length == 0) return callback(errors.databaseError);
 
@@ -90,12 +80,13 @@ module.exports = {
       newObj.id = docs[0]._id;
       checkPrivileges(req,docs[0],newObj);
       if(newObj.privileges == 0) {
-        docs[0].pending.push(loginSession.getId(req));
+        var pendingObj = {
+          id: loginSession.getId(req),
+          username: loginSession.getUsername(req)
+        };
+        docs[0].pending.push(pendingObj);
         collection.update({_id: storeId}, docs[0], function(err, cout, status) {
           if(indexFunctions.isEmpty(err)) {
-            setTimeout(function() {
-              database.close();
-            }, 100);
             return (callback(errors.noError));
           }
           else {
@@ -109,8 +100,7 @@ module.exports = {
     });
   },
   cancelRequest: function(req, storeId, callback) {
-    var database = require('monk')('localhost:27017/student-management');
-    var collection = database.get('stores');
+    var collection = this.database.get('stores');
     collection.find({_id: storeId}, {limit:1}).then((docs) => {
       if(docs.length == 0) return callback(errors.databaseError);
 
@@ -121,9 +111,6 @@ module.exports = {
         removePending(docs[0],loginSession.getId(req));
         collection.update({_id: storeId}, docs[0], function(err, cout, status) {
           if(indexFunctions.isEmpty(err)) {
-            setTimeout(function() {
-              database.close();
-            }, 100);
             return (callback(errors.noError));
           }
           else {
@@ -137,27 +124,115 @@ module.exports = {
     });
   },
   getStoreProperties: function (req, storeId, callback) {
-    var database = require('monk')('localhost:27017/student-management');
-    var collection = database.get('stores');
-    if(storeId.length != 24) return callback(errors.noStoreError, null);
+    this.getStoreObject(req, storeId, function(err, obj) {
+      if(err.error == false) {
+        var dbObj = obj;
+        var newObj = {};
+        newObj.id = dbObj._id;
+        newObj.name = dbObj.name;
+        checkPrivileges(req,dbObj,newObj);
+        return callback(errors.noError, newObj);
+      }
+      else return callback(err);
+    });
+  },
+  getStoreObject: function (req, storeId, callback) {
+    var collection = this.database.get('stores');
+
+    if(storeId.length != 24) {
+      return callback(errors.noStoreError, null);
+    }
     else {
-      var hej = collection.find({}, function (err, docs) {
+      collection.find({}, function (err, docs) {
         if(docs.length == 0) return callback(errors.noStoreError, null);
         if(err != null) return callback(errors.databaseError, null);
         for(var a = 0; a < docs.length; a++) {
           if(docs[a]._id == storeId) {
             //we got a matching store
-            var dbObj = docs[a];
-            var newObj = {};
-            newObj.id = dbObj._id;
-            newObj.name = dbObj.name;
-            checkPrivileges(req,dbObj,newObj);
-            return callback(errors.noError, newObj);
+            return callback(errors.noError, docs[a]);
           }
         }
         return callback(errors.noStoreError, null);
       });
     }
+  },
+  updateStoreObject: function (storeId, obj, callback) {
+    var collection = databaseConnection.db.get('stores');
+
+    collection.update({_id: storeId}, obj, function(err, cout, status) {
+      if(indexFunctions.isEmpty(err)) {
+        return (callback(errors.noError));
+      }
+      else {
+        return callback(errors.databaseError);
+      }
+    });
+  },
+  getPendingQueue: function (req, storeId, callback) {
+    var collection = this.database.get('stores');
+
+    collection.find({_id: storeId}, {limit:1}).then((docs) => {
+      if(docs.length == 0) return callback(errors.databaseError, null);
+
+      var pendingQueue = docs[0].pending;
+      pendingQueue.splice(0,1);
+
+      return callback({error: false}, pendingQueue);
+    });
+  },
+  moveUser: function(req, storeId, userId, accepted, callback) {
+    var collection = databaseConnection.db.get('stores');
+    var updateStoreObject = this.updateStoreObject;
+    this.getStoreObject(req, storeId, function(err, obj) {
+      if(err.error == true) {
+        return callback(err);
+      }
+      else {
+        for(var i = 0; i < obj.pending.length; i++) {
+          if(obj.pending[i].id == userId) {
+            //we got a match
+            console.log(accepted);
+            if(accepted == true) {
+              console.log("accepted");
+              //check if members contains our userData
+              for(var a = 0; a < obj.members.length; a++) {
+                if(obj.members[a] == userId) {
+                  obj.pending.splice(i,1);
+                  updateStoreObject(storeId, obj, function(res) {
+                    return callback(errors.databaseError);
+                  });
+                }
+              }
+
+              obj.members.push(obj.pending[i]);
+              obj.pending.splice(i,1);
+              updateStoreObject(storeId, obj, function(res) {
+                if(res.error == false) return callback(errors.noError);
+                else return callback(res);
+              });
+            }
+            else {
+              console.log("not accepted");
+              for(var a = 0; a < obj.rejected.length; a++) {
+                if(obj.rejected[a] == userId) {
+                  obj.pending.splice(i,1);
+                  updateStoreObject(storeId, obj, function(res) {
+                    return callback(errors.databaseError);
+                  });
+                }
+              }
+
+              obj.rejected.push(obj.pending[i]);
+              obj.pending.splice(i,1);
+              updateStoreObject(storeId, obj, function(res) {
+                if(err.error == false) return callback(errors.noError);
+                else return callback(res);
+              });
+            }
+          }
+        }
+      }
+    });
   }
 };
 
@@ -169,15 +244,22 @@ function checkPrivileges(req, storeObject, newObject) {
   }
 
   for(var i = 0; i < storeObject.members.length; i++) {
-    if(storeObject.members[i] == userId) {
+    if(storeObject.members[i].id == userId) {
       newObject.privileges = 1; //member
       return;
     }
   }
 
   for(var i = 0; i < storeObject.pending.length; i++) {
-    if(storeObject.pending[i] == userId) {
+    if(storeObject.pending[i].id == userId) {
       newObject.privileges = -1; //pending
+      return;
+    }
+  }
+
+  for(var i = 0; i < storeObject.rejected.length; i++) {
+    if(storeObject.rejected[i].id == userId) {
+      newObject.privileges = -2; //rejected
       return;
     }
   }
@@ -193,7 +275,7 @@ function checkRegex(data) {
 
 function removePending(obj, id) {
   for(var i = 0; i < obj.pending.length; i++) {
-    if(obj.pending[i] == id) {
+    if(obj.pending[i].id == id) {
       obj.pending.splice(i,1);
       i = 0; //in case of multiple reqests (as a result of some bug)
     }
@@ -202,26 +284,26 @@ function removePending(obj, id) {
 
 var errors = {
   noError: {
-    error: "false"
+    error: false
   },
   dataError: {
-    error: "true",
+    error: true,
     messages: ["Nieprawidłowe dane."]
   },
   nameUsed: {
-    error: "true",
+    error: true,
     messages: ["Ta nazwa jest już w użyciu."]
   },
   databaseError: {
-    error: "true",
+    error: true,
     messages: ["Błąd podczas połączenia z bazą danych. Proszę odświeżyć stronę."]
   },
   permissionError: {
-    error: "true",
+    error: true,
     messages: ["Brak uprawnień do wykonania tej operacji."]
   },
   noStoreError: {
-    error: "true",
+    error: true,
     messages: ["Nie ma takiego składu."]
   }
 };

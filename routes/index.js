@@ -4,6 +4,7 @@ var postRegister = require('../modules/postRegister');
 var postLogin = require('../modules/postLogin');
 var loginSession = require('../modules/loginSession');
 var storesManager = require('../modules/storesManager');
+var adminController = require('../modules/adminController');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -35,7 +36,7 @@ router.post('/login/', function (req, res, next) {
     password: req.body.password
   };
   postLogin.verifyData(loginData, function(result, id=0, username='') {
-    if(result.error == "false") {
+    if(result.error == false) {
         loginSession.authenticateUser(req, id, username);
     }
     sendResHeader(res,result);
@@ -104,16 +105,17 @@ router.get('/store/:storeId', function(req, res, next) {
   if(loginSession.checkLogin(req)) {
     storesManager.getStoreProperties(req, storeId, function(errors, data) {
       name = loginSession.getUsername(req);
-      if(errors.error == "true") {
+      if(errors.error == true) {
         res.render('storeError', { title: "Wystąpił błąd", messages: errors.messages, headScripts: [], username: name});
       }
       else {
-          console.log(data);
-          if(data.privileges == 2) {
-            res.render('store', { title: data.name, headScripts: ['/javascripts/pagesController.js'], username: name, admin: true});
-          }
-          else if (data.privileges == 1) {
-            res.render('store', { title: data.name, headScripts: ['/javascripts/pagesController.js'], username: name, admin: false});
+          if(data.privileges >= 1) {
+            if(data.privileges == 2) {
+              res.render('store', { title: data.name, headScripts: ['/javascripts/requestController.js','/javascripts/pagesController.js'], username: name, admin: true});
+            }
+            else if (data.privileges == 1) {
+              res.render('store', { title: data.name, headScripts: ['/javascripts/pagesController.js'], username: name, admin: false});
+            }
           }
           else {
             res.render('storeError', { title: "Wystąpił błąd", messages: ["Nie jesteś członkiem tego składu!"], headScripts: [], username: name});
@@ -124,6 +126,25 @@ router.get('/store/:storeId', function(req, res, next) {
   else {
     res.redirect('/');
   }
+});
+
+/*POST Get requests*/
+router.post('/getRequests/', function(req, res, next) {
+  var storeId = req.body.id;
+  adminController.loadRequests(req, storeId, function(result) {
+    sendResHeader(res, result);
+  });
+});
+
+/*POST Process request*/
+router.post('/processRequest/', function(req, res, next) {
+  var storeId = req.body.storeId;
+  var userId = req.body.userId;
+  var accepted = req.body.accepted;
+
+  adminController.processRequest(req, storeId, userId, accepted, function(result) {
+    sendResHeader(res,result);
+  })
 });
 
 /*LOGOUT*/

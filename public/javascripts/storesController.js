@@ -48,7 +48,7 @@ function sendData(postData, url, successMessage, button) {
   xhttp.onreadystatechange = function() {
     if (this.readyState == 4 && this.status == 200) {
       var errors = JSON.parse(this.responseText);
-      if(errors.error == "true") {
+      if(errors.error == true) {
         //handle errors
         setTimeout(function() {
           resetInput();

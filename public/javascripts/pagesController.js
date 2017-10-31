@@ -16,7 +16,7 @@ function changePage(page) {
       changeContent("settings.html", page);
     break;
     case "administration":
-      changeContent("admin.html", page);
+      changeContent("admin.html", page, [refreshRequests]);
     break;
     default:
       changeContent("error.html", null);
@@ -24,14 +24,19 @@ function changePage(page) {
   }
 }
 
-function changeContent(filename, id) {
+function changeContent(filename, id, functionsToExecute) {
   changeActive(id);
   $("#content-container").fadeOut("400","linear", function(){
     $("#page-content").load("../storePages/"+filename, function (response, status, xhr) {
       if(status == "error") {
         $("#page-content").load("../storePages/error.html");
       }
-      $("#content-container").fadeIn("400", "linear");
+      $("#content-container").fadeIn("400", "linear", function () {
+        if(functionsToExecute != null)
+          for(var i = 0; i < functionsToExecute.length; i++) {
+            functionsToExecute[i]();
+          }
+      });
     });
   });
 }

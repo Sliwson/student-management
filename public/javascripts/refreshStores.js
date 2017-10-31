@@ -75,6 +75,9 @@ function prepareCard(storeData) {
         else if (storeData.privileges == -1) {
           cardString += '<span class = "text-muted float-right h5 mt-1">Wysłano prośbę o dołączenie</span>';
         }
+        else if (storeData.privileges == -2) {
+          cardString += '<span class = "text-warning float-right h5 mt-1">Prośba odrzucona</span>';
+        }
         cardString += '</div>'+
         '<hr>';
         if(storeData.privileges >= 1) {

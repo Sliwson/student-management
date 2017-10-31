@@ -2,6 +2,7 @@ var session = require('express-session');
 var bcrypt = require('bcrypt');
 const saltRounds = 10;
 var indexFunctions = require('./indexFunctions');
+var databaseConnection = require ('./databaseConnection');
 
 module.exports = {
   verifyData: function(data, callback) {
@@ -13,12 +14,11 @@ module.exports = {
         return (callback(errors.loginError));
       }
 
-      var database = require('monk')('localhost:27017/student-management');
+      var database = databaseConnection.db;
       var collection = database.get('users');
 
       collection.find({email: data.email},{limit: 1}, function(e, docs) {
-        if(indexFunctions.isEmpty(docs)) {
-          database.close();
+        if(indexFunctions.isEmpty(docs)) {          
           return (callback(errors.loginError));
         }
         var passwordHash = docs[0].password;
@@ -26,15 +26,12 @@ module.exports = {
         var username = docs[0].name;
         bcrypt.compare(data.password, passwordHash, function(err, res) {
           if(err) {
-            database.close();
             return(callback(errors.loginError));
           }
           if(res == true) {
-            database.close();
             return(callback(errors.noError, id, username));
           }
           else {
-            database.close();
             return(callback(errors.loginError));
           }
         });
@@ -44,10 +41,10 @@ module.exports = {
 
 var errors = {
   noError: {
-    error: "false"
+    error: false
   },
   loginError: {
-    error: "true",
+    error: true,
     messages: ["Nieprawidłowy login lub hasło"]
   }
 };

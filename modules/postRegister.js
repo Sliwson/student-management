@@ -1,6 +1,7 @@
 var bcrypt = require('bcrypt');
 const saltRounds = 10;
 var indexFunctions = require('./indexFunctions');
+var databaseConnection = require('./databaseConnection');
 
 module.exports = {
   verifyData: function(data, callback) {
@@ -14,7 +15,7 @@ module.exports = {
         return (callback(errors.dataError));
       }
       //estabilish connection with db
-      var database = require('monk')('localhost:27017/student-management');
+      var database = databaseConnection.db;
       var collection = database.get('users');
 
       //check email and nickname repetition
@@ -26,15 +27,12 @@ module.exports = {
           emailUsed = !indexFunctions.isEmpty(docs);
 
           if(nameUsed && emailUsed) {
-            database.close();
             return (callback(errors.bothUsed));
           }
           else if (nameUsed) {
-            database.close();
             return (callback(errors.nameUsed));
           }
           else if (emailUsed) {
-            database.close();
             return (callback(errors.emailUsed));
           }
 
@@ -43,16 +41,11 @@ module.exports = {
             data.password = bcrypt.hashSync(data.password, saltRounds);
           }
           catch(err) {
-            database.close();
             return (callback(errors.hashingError));
           }
 
           //insert data into database
           var insert = collection.insert(data);
-
-          setTimeout(function() {
-            database.close();
-          }, 100);
 
           return (callback(errors.noError));
         });
@@ -62,30 +55,30 @@ module.exports = {
 
 var errors = {
   noError: {
-    error: "false"
+    error: false
   },
   dataError: {
-    error: "true",
+    error: true,
     messages: ["Nieprawidłowe dane."]
   },
   hashingError: {
-    error: "true",
+    error: true,
     messages: ["Błąd podczas szyfrowania danych."]
   },
   databaseError: {
-    error: "true",
+    error: true,
     messages: ["Błąd podczas łączenia z bazą danych."]
   },
   nameUsed: {
-    error: "true",
+    error: true,
     messages: ["Ta nazwa użytkownika jest już w użyciu."]
   },
   emailUsed: {
-    error: "true",
+    error: true,
     messages: ["Ten adres email jest już w użyciu."]
   },
   bothUsed: {
-    error: "true",
+    error: true,
     messages: ["Ta nazwa użytkownika jest już w użyciu.","Ten adres email jest już w użyciu."]
   }
 };

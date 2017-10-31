@@ -28,7 +28,7 @@ app.use(session({
     secret: 'j7q3vqj4v5j709q3jv9k309q874x',
     resave: false,
     saveUninitialized: false,
-    store: new MongoStore({ url: 'mongodb://localhost:27017/student-management' })
+    store: new MongoStore({ url: 'mongodb://127.0.0.1:27017/student-management' })
 }));
 
 app.use('/', index);

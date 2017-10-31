@@ -1,5 +1,5 @@
 /*INDEX*/
-#loadingContainer, #loadingContainerLogin, #loadingContainerAdd {
+#loadingContainer, #loadingContainerLogin, #loadingContainerAdd, #pending-container {
   display: none;
 }
 
@@ -15,4 +15,9 @@
 
 #storesContainer {
   display: none;
+}
+
+/*STORES*/
+.margin-bottom-custom {
+  display: inline-block;
 }

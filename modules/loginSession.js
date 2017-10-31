@@ -24,5 +24,5 @@ module.exports = {
   getId: function(req) {
     if(req.session.userid) return req.session.userid;
     else return "0";
-  }
+  },
 };
