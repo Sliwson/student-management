@@ -37,38 +37,35 @@ function handleLogin() {
 }
 
 function sendLoginData(data) {
-  var xhttp;
-  if(window.XMLHttpRequest) {
-    xhttp = new XMLHttpRequest();
-  } else {
-    xhttp = new ActiveXObject("Microsoft.XMLHTTP");
-  }
-
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      var errors = JSON.parse(this.responseText);
-      if(errors.error == true) {
-        //handle errors
-        setTimeout(function() {
-          resetLoginInputs();
-          displayBackendErrors(errors.messages, "#alertContainerLogin", "#loadingSpinnerLogin", "#loadingContainerLogin", "#loginButton");
-        }, 700);
-      }
-      else {
-        //redirect to home
-        setTimeout(function() {
-          displaySuccessMessage("Zalogowano pomyślnie.", "#loadingContainerLogin", "#alertContainerLogin", "#loginButton");
-        }, 700);
-        setTimeout(function() {
-          window.location.assign('/home/');
-        }, 1000);
-      }
+  fetch('/login',
+  {
+    credentials: 'same-origin',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    method: 'post',
+    body: JSON.stringify(data)
+  }).then(function(response) {
+    return response.json();
+  }).then(function(errors) {
+    if(errors.error == true) {
+      //handle errors
+      setTimeout(function() {
+        resetLoginInputs();
+        displayBackendErrors(errors.messages, "#alertContainerLogin", "#loadingSpinnerLogin", "#loadingContainerLogin", "#loginButton");
+      }, 700);
     }
-  };
-
-  xhttp.open("POST", "/login", true);
-  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-  xhttp.send("email=" + data.email + "&password=" + data.password);
+    else {
+      //redirect to home
+      setTimeout(function() {
+        displaySuccessMessage("Zalogowano pomyślnie.", "#loadingContainerLogin", "#alertContainerLogin", "#loginButton");
+      }, 700);
+      setTimeout(function() {
+        window.location.assign('/home/');
+      }, 1000);
+    }
+  });
 }
 
 function prepareLoginErrorMessages(errors) {

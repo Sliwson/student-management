@@ -191,9 +191,7 @@ module.exports = {
         for(var i = 0; i < obj.pending.length; i++) {
           if(obj.pending[i].id == userId) {
             //we got a match
-            console.log(accepted);
             if(accepted == true) {
-              console.log("accepted");
               //check if members contains our userData
               for(var a = 0; a < obj.members.length; a++) {
                 if(obj.members[a] == userId) {
@@ -212,7 +210,6 @@ module.exports = {
               });
             }
             else {
-              console.log("not accepted");
               for(var a = 0; a < obj.rejected.length; a++) {
                 if(obj.rejected[a] == userId) {
                   obj.pending.splice(i,1);
@@ -232,6 +229,18 @@ module.exports = {
           }
         }
       }
+    });
+  },
+
+  getPrivileges: function(req, storeId, callback) {
+    //grab all necessary fields from database, perform check function and return value
+    var collection = this.database.get('stores');
+    collection.find({_id: storeId}, {limit:1}).then((docs) => {
+      if(docs.length == 0) return callback(0);
+
+      var newObj = {};
+      checkPrivileges(req, docs[0], newObj);
+      return callback(newObj.privileges);
     });
   }
 };

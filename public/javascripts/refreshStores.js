@@ -1,38 +1,33 @@
 function refreshStores() {
-  var xhttp;
-  if(window.XMLHttpRequest) {
-    xhttp = new XMLHttpRequest();
-  } else {
-    xhttp = new ActiveXObject("Microsoft.XMLHTTP");
-  }
-
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      var result = JSON.parse(this.responseText);
-
-      sortStores(result);
-
-      var storesString = "";
-      for(store in result) {
-        var storeData = result[store];
-        storesString += prepareCard(storeData);
-      }
-      if($("#storesContainer").css('display') == 'hidden') {
-        document.getElementById("storesContainer").innerHTML = storesString;
-        $("#storesContainer").fadeIn("900", "linear");
-      }
-      else {
-        $("#storesContainer").fadeOut("200", "linear", function() {
-          document.getElementById("storesContainer").innerHTML = storesString;
-          $("#storesContainer").fadeIn("600", "linear");
-        });
-      }
+  fetch('/getStores',
+  {
+    credentials: 'same-origin',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    method: 'post'
+  }).then(function(response) {
+    return response.json();
+  }).then(function(result) {
+    sortStores(result);
+    
+    var storesString = "";
+    for(store in result) {
+      var storeData = result[store];
+      storesString += prepareCard(storeData);
     }
-  };
-
-  xhttp.open("POST", "/getStores/", true);
-  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-  xhttp.send();
+    if($("#storesContainer").css('display') == 'hidden') {
+      document.getElementById("storesContainer").innerHTML = storesString;
+      $("#storesContainer").fadeIn("900", "linear");
+    }
+    else {
+      $("#storesContainer").fadeOut("200", "linear", function() {
+        document.getElementById("storesContainer").innerHTML = storesString;
+        $("#storesContainer").fadeIn("600", "linear");
+      });
+    }
+  });
 }
 
 function sortStores(storesArray) {

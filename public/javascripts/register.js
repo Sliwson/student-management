@@ -47,34 +47,32 @@ function handleRegister() {
 }
 
 function sendData(data) {
-  var xhttp;
-  if(window.XMLHttpRequest) {
-    xhttp = new XMLHttpRequest();
-  } else {
-    xhttp = new ActiveXObject("Microsoft.XMLHTTP");
-  }
-
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      var errors = JSON.parse(this.responseText);
-      if(errors.error == false) {
-        setTimeout( function () {
-          displaySuccessMessage("Rejestracja przebiegła pomyślnie!","#loadingContainer", "#alertContainer", "#registerButton");
-        }, 700);
-      }
-      else {
-        //handle errors
-        setTimeout(function() {
-          resetInputs();
-          displayBackendErrors(errors.messages, "#alertContainer", "#loadingSpinner", "#loadingContainer", "#registerButton");
-        }, 700);
-      }
+  data.nick = data.nickname;
+  fetch('/register',
+  {
+    credentials: 'same-origin',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    method: 'post',
+    body: JSON.stringify(data)
+  }).then(function(response) {
+    return response.json();
+  }).then(function(errors) {
+    if(errors.error == false) {
+      setTimeout( function () {
+        displaySuccessMessage("Rejestracja przebiegła pomyślnie!","#loadingContainer", "#alertContainer", "#registerButton");
+      }, 700);
     }
-  };
-
-  xhttp.open("POST", "/register", true);
-  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-  xhttp.send("nick=" + data.nickname + "&email=" + data.email + "&password=" + data.password);
+    else {
+      //handle errors
+      setTimeout(function() {
+        resetInputs();
+        displayBackendErrors(errors.messages, "#alertContainer", "#loadingSpinner", "#loadingContainer", "#registerButton");
+      }, 700);
+    }
+  });
 }
 
 function resetInputs() {

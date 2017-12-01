@@ -1,46 +1,58 @@
 function refreshRequests() {
-  var xhttp = createXhttp();
-
-  xhttp.onreadystatechange = function() {
-    if (this.readyState == 4 && this.status == 200) {
-      var result = JSON.parse(this.responseText);
-
-      var displayString = "";
-      if(result.error == false) {
-        displayString = prepareString(result.pendingArray);
-      }
-      else {
-        displayString = prepareErrorString(result.messages);
-      }
-      visualTransition(displayString);
-    }
+  var id = getStoreIdFromUrl();
+  var data = {
+    id: id
   };
 
-  var storeId = getStoreIdFromUrl();
-  xhttp.open("POST", "/getRequests/", true);
-  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-  xhttp.send("id=" + storeId);
+  fetch('/getRequests',
+  {
+    credentials: 'same-origin',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    method: 'post',
+    body: JSON.stringify(data)
+  }).then(function(response) {
+    return response.json();
+  }).then(function(result) {
+    var displayString = "";
+    if(result.error == false) {
+      displayString = prepareString(result.pendingArray);
+    }
+    else {
+      displayString = prepareErrorString(result.messages);
+    }
+    visualTransition(displayString);
+  });
 }
 
 function processRequest(userId, accepted) {
-  var xhttp = createXhttp();
-
-  xhttp.onreadystatechange = function() {
-    if(this.readyState == 4 && this.status == 200) {
-      var result = JSON.parse(this.responseText);
-
-      if(result.error == false) refreshRequests();
-      else {
-        displayString = prepareErrorString(result.messages);
-        visualTransition(displayString);
-      }
-    }
+  var storeId = getStoreIdFromUrl();
+  var data = {
+    storeId,
+    userId,
+    accepted
   };
 
-  var storeId = getStoreIdFromUrl();
-  xhttp.open("POST", "/processRequest/", true);
-  xhttp.setRequestHeader("Content-type", "application/x-www-form-urlencoded");
-  xhttp.send("storeId=" + storeId + "&userId=" + userId + "&accepted=" + accepted);
+  fetch('/processRequest',
+  {
+    credentials: 'same-origin',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    method: 'post',
+    body: JSON.stringify(data)
+  }).then(function(response) {
+    return response.json();
+  }).then(function(result) {
+    if(result.error == false) refreshRequests();
+    else {
+      displayString = prepareErrorString(result.messages);
+      visualTransition(displayString);
+    }
+  });
 }
 
 function getStoreIdFromUrl() {

@@ -5,6 +5,7 @@ var postLogin = require('../modules/postLogin');
 var loginSession = require('../modules/loginSession');
 var storesManager = require('../modules/storesManager');
 var adminController = require('../modules/adminController');
+var payoff = require('../modules/payoff');
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
@@ -110,11 +111,14 @@ router.get('/store/:storeId', function(req, res, next) {
       }
       else {
           if(data.privileges >= 1) {
+            var scriptsAll = ['/javascripts/pagesController.js', '/javascripts/payoffController.js', '/javascripts/viewController.js',
+              '/javascripts/inputfieldEnters/payoffEnter.js'];
             if(data.privileges == 2) {
-              res.render('store', { title: data.name, headScripts: ['/javascripts/requestController.js','/javascripts/pagesController.js'], username: name, admin: true});
+              var adminScripts = ['/javascripts/requestController.js'].concat(scriptsAll);
+              res.render('store', { title: data.name, headScripts: adminScripts, username: name, admin: true});
             }
             else if (data.privileges == 1) {
-              res.render('store', { title: data.name, headScripts: ['/javascripts/pagesController.js'], username: name, admin: false});
+              res.render('store', { title: data.name, headScripts: scriptsAll, username: name, admin: false});
             }
           }
           else {
@@ -145,6 +149,13 @@ router.post('/processRequest/', function(req, res, next) {
   adminController.processRequest(req, storeId, userId, accepted, function(result) {
     sendResHeader(res,result);
   })
+});
+
+/*POST add receipt*/
+router.post('/addReceipt/', function(req, res, next) {
+  payoff.add(req, req.body, function(result) {
+    sendResHeader(res, result);
+  });  
 });
 
 /*LOGOUT*/
