@@ -1,1 +1,42 @@
 <h3 class= "display-3">Rozliczenia</h3>
+<hr>
+<h2 class= "display-4">Dodaj paragon</h2>
+<br>
+<div class = "row">
+  <div class = "col-9 mr-0 pr-0">
+    <div class = "input-group">
+      <input type = "text" onkeypress = "enterWait(event)" id = "title" class="form-control" placeholder = "Tytuł">
+    </div>
+  </div>
+  <div class = "col">
+    <div class = "input-group">
+      <input type = "number" onkeypress = "enterWait(event)" step = "any" id = "ammount" class="form-control" placeholder = "Suma">
+    </div>
+  </div>
+</div>
+<br>
+<div class = "input-group">
+  <input type = "text" onkeypress = "enterWait(event)" id = "description" class="form-control" placeholder = "Opis">
+</div>
+<br>
+<div class = "input-group">
+  <button onclick = "addReceipt()" id = "addButton" class = "btn btn-outline-primary" onclick = "">Dodaj</button>
+  <button onclick = "" class = "btn btn-outline-secondary ml-2">Zobacz historię paragonów</button>
+</div>
+<div id = "alertContainer"></div>
+  <div id = "loadingContainer">
+  <img id = "loadingSpinner" src="../images/infinity.svg" alt = "Loading spinner">
+</div>
+<hr>
+<h2 class= "display-4">Rozlicz</h2>
+<div>
+  <hr>
+  <div>
+    <span><p class = "text-secondary align-middle margin-bottom-custom mr-3 mt-1 mb-3 h4">Przemek Bus - 30.20 zł</p></span>
+      <div class = "mb-3">
+        <button onclick = "" class = "btn btn-outline-success">Rozliczono!</button>
+        <button onclick = "" class = "btn btn-outline-secondary ml-2">Cofnij ostatnie rozliczenie</button>
+      </div>
+    </div>
+    <hr class ="mt-2">
+</div>

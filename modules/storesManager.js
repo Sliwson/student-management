@@ -13,16 +13,17 @@ module.exports = {
     var collection = this.database.get('stores');
 
     collection.find({name: name},{limit:1}, function(e, docs) {
-      if(!indexFunctions.isEmpty(docs)) {
+      if(docs.length != 0) {
         return (callback(errors.nameUsed));
       }
       else {
+        var emptyArr = [];
         var insertObject = {
           name: name,
           admin: loginSession.getId(req),
-          members: [{id: "0", name: "Anonymous"}],
-          pending: [{id: "0", name: "Anonymous"}],
-          rejected: [{id: "0", name: "Anonymous"}]
+          members: emptyArr,
+          pending: emptyArr,
+          rejected: emptyArr
         };
 
         collection.insert(insertObject);
@@ -175,7 +176,6 @@ module.exports = {
       if(docs.length == 0) return callback(errors.databaseError, null);
 
       var pendingQueue = docs[0].pending;
-      pendingQueue.splice(0,1);
 
       return callback({error: false}, pendingQueue);
     });
