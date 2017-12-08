@@ -43,7 +43,36 @@ function addReceipt () {
     //send post data and wait for response
     sendData(data, fields);
   }
-}   
+}
+
+function loadReceipts() {
+  var data = {
+    id: getStoreId()
+  };
+
+  fetch('/getReceipts/',
+  {
+    credentials: 'same-origin',
+    headers: {
+      'Accept': 'application/json',
+      'Content-Type': 'application/json'
+    },
+    method: 'post',
+    body: JSON.stringify(data)
+  }).then(function(response) {
+    return response.json();
+  }).then(function(data) {
+    if(data.error == true) { 
+      displayError(data.messages);
+    }
+    else if (data.empty == true) {
+      displayMessage("Brak paragonów do wyświetlenia");
+    }
+    else {
+      displayContent(data);
+    }
+  });
+}
 
 function prepareErrorMessages(errors) {
   var err = [];
@@ -60,8 +89,7 @@ function prepareErrorMessages(errors) {
 }
 
 function sendData(data, fields) {
-  var storeId = location.pathname.split('/')[2];
-  data.storeId = storeId;
+  data.storeId = getStoreId();
 
   fetch('/addReceipt',
   {
@@ -100,4 +128,89 @@ function resetAllInput(fields) {
       fields[property].value = '';
     }
   }
+}
+
+function getStoreId() {
+  return location.pathname.split('/')[2];
+}
+
+function displayError(messages) {
+  var con = $('#receipts-container'); 
+
+  if(con.html() != '') {
+    prepareContainer(messages, '#receipts-container');
+    con.append('<hr>');
+    con.fadeIn("400", "linear");
+  }
+  else {
+    con.fadeOut("400", "linear", function() {
+      prepareContainer(messages, '#receipts-container');
+      con.append('<hr>');
+      con.fadeIn("400", "linear");
+    })
+  } 
+}
+
+function displayMessage(message) {
+  var con = $('#receipts-container'); 
+  var mes = `<div>
+            <span><p class = "text-secondary h5">${message}</p></span>
+            </div>
+            <hr>`;
+  if(con.html() != '') {
+    con[0].innerHTML = mes;
+    con.fadeIn("400", "linear");
+  }
+  else {
+    con.fadeOut("400", "linear", function() {
+      con[0].innerHTML = mes;
+      con.fadeIn("400", "linear");
+    })
+  } 
+}
+
+function displayContent(data) {
+  var con = $('#receipts-container'); 
+  var mes = prepareArr(data);
+  if(con.html() != '') {
+    con[0].innerHTML = mes;
+    con.fadeIn("400", "linear");
+  }
+  else {
+    con.fadeOut("400", "linear", function() {
+      con[0].innerHTML = mes;
+      con.fadeIn("400", "linear");
+    })
+  } 
+}
+
+function prepareArr(data) {
+  var rec = data.receipts;
+  var str = '';
+  for(var i = 0; i < rec.length; i++) {
+    str += prepareCardReceipt(rec[i]);
+  }
+
+  //TODO: Sort and add transfers
+
+  return str;
+}
+
+function prepareCardReceipt(obj) {
+  var button = obj.deleteable ? '<hr> <button onclick = "" class = "btn btn-outline-danger">Usuń</button>' : '';
+
+  var oks = `<div class = "card">
+              <div class = "card-body">
+                  <span class = "h3">${obj.title}</span>
+                  <span class = "text-success h4 float-right">${obj.ammount} zł</span>
+                  <hr>
+                  <p class = "text-secondary font-big">${obj.description}</p>
+                  <p class = "text-secondary h5">${obj.ownerName}</p>
+                  ${button}
+              </div>
+            </div>
+            <hr>`;
+
+  //TODO: Delete function
+  return oks;
 }

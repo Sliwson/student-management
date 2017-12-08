@@ -6,6 +6,9 @@ function changePage(page) {
     case "payoff":
       changeContent("payoff.html", page);
     break;
+    case "receipts":
+      changeContent("receipts.html", "payoff", [loadReceipts]);
+    break;
     case "cleaning":
       changeContent("cleaning.html", page);
     break;

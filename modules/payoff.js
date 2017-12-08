@@ -19,6 +19,12 @@ module.exports = {
         payoffDatabase.addReceipt(req, data, function(result) {
             return callback(result);
         });
+    },
+
+    get: function(req, storeId, callback) {
+        payoffDatabase.getReceipts(req, storeId, function(result) {
+            return callback(result);
+        });
     }
 };
 

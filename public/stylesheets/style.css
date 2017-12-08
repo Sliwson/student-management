@@ -1,5 +1,5 @@
 /*INDEX*/
-#loadingContainer, #loadingContainerLogin, #loadingContainerAdd, #pending-container {
+#loadingContainer, #loadingContainerLogin, #loadingContainerAdd, #pending-container, #receipts-container {
   display: none;
 }
 
@@ -20,4 +20,8 @@
 /*STORES*/
 .margin-bottom-custom {
   display: inline-block;
+}
+
+.font-big {
+  font-size: 20px;
 }

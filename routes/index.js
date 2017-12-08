@@ -151,9 +151,17 @@ router.post('/processRequest/', function(req, res, next) {
   })
 });
 
-/*POST add receipt*/
+/*POST Add receipt*/
 router.post('/addReceipt/', function(req, res, next) {
   payoff.add(req, req.body, function(result) {
+    sendResHeader(res, result);
+  });  
+});
+
+/*POST Get receipts*/
+router.post('/getReceipts/', function(req, res, next) {
+  var id = req.body.id;
+  payoff.get(req, id, function(result) {
     sendResHeader(res, result);
   });  
 });

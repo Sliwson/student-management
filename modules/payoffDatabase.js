@@ -16,13 +16,16 @@ module.exports = {
             }
 
             var userId = loginSession.getId(req);
+            var userName = loginSession.getUsername(req);
 
             if(userId == 0) {
                 return callback(error.unauthOperation);
             }
 
             var dataObject = {
+                date: Date(),
                 ownerId: userId,
+                ownerName: userName,
                 title: data.title,
                 ammount: data.ammount,
                 description: data.description
@@ -35,7 +38,7 @@ module.exports = {
     },
 
     updateCollection: function(storeId, objectData, callback) {
-        collection = this.database.get('payoffs');
+        var collection = this.database.get('payoffs');
 
         collection.find({storeId: storeId},{limit:1}, function(e, docs) {
             
@@ -63,6 +66,62 @@ module.exports = {
                 return callback({error: false});  
             } 
         });
+    },
+
+    getReceipts: function(req, storeId, callback) {
+        var obj = this;
+        storesManager.getPrivileges(req, storeId, function(privilegeId) {
+
+            if(privilegeId <= 0) {
+                return callback(errors.unauthOperation);
+            }
+
+            var userId = loginSession.getId(req);
+
+            if(userId == 0) {
+                return callback(error.unauthOperation);
+            }
+
+            var collection = obj.database.get('payoffs');
+
+            collection.find({storeId: storeId}, {limit: 1}, function(e, docs) {
+                
+                if(!indexFunctions.isEmpty(e)) {
+                    return callback(errors.databaseError);
+                }
+
+                if(docs.length == 0) {
+                    return callback (errors.empty);
+                }
+
+                var receipts = docs[0].receipts;
+                var transfers = docs[0].transfers;
+
+                if(receipts.length == 0 && transfer.length == 0) {
+                    return callback (errors.empty);
+                }
+                
+                for(var i = 0; i < receipts.length; i++) {
+                    receipts[i].deleteable = deleteable(userId, receipts[i].ownerId);
+                    delete receipts[i].ownerId;
+                }
+
+                for(var i = 0; i < transfers.length; i++) {
+                    transfer[i].deleteable = deleteable(userId, giverId);
+                    delete transfers[i].giverId;
+                    delete transfers[i].recieverId;
+                }
+
+                var data = {
+                    error: false,
+                    empty: false,
+                    receipts,
+                    transfers
+                }
+
+                return callback(data);
+            });
+        });    
     }
 };
 
@@ -74,5 +133,18 @@ var errors = {
     databaseError: {
         error: true,
         messages: ["Błąd podczas połączenia z bazą danych."]
+    },
+    empty: {
+        error: false,
+        empty: true
     }
 };
+
+function deleteable(userId, ownerId) {
+    if(userId == ownerId) { 
+        return true;
+    }
+    else {
+        return false;
+    }
+}
