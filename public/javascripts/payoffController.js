@@ -1,40 +1,54 @@
+//Add receipt functions
 function addReceipt () {
   buttonDisabled(true, "#addButton");
 
-  var fields = {
+  var fields = getReceiptFields();
+  
+  var data = getReceiptFieldsData(fields);
+
+  var regexes = defineRegexes();
+
+  var errors = checkForErrors(regexes, data)
+
+  handleResult(errors, data, fields);
+}
+
+function getReceiptFields() {
+  return {
     fTitle: document.getElementById("title"),
     fAmmount: document.getElementById("ammount"),
     fDescription: document.getElementById("description")
   };
-  
-  var data = {
+}
+
+function getReceiptFieldsData(fields) {
+  return {
     title: fields.fTitle.value.trim(),
     ammount: fields.fAmmount.value.trim(),
     description: fields.fDescription.value.trim()
   };
+}
 
-  //client side verification
-  var regexes = {
+function defineRegexes() {
+  return {
     title: new RegExp('^[^"\']+$'),
     ammount: new RegExp('^([1-9]{1,1}[0-9]*)([\.,]{1,1}[0-9]{1,2}){0,1}$')
   };
+}
 
-  var errors = {
+function checkForErrors(regexes, data) {
+  return {
     titleErr: !regexes.title.test(data.title),
     ammountErr: !regexes.ammount.test(data.ammount),
     descriptionErr: !regexes.title.test(data.description)
   };
+}
 
-  var anyError = function() {
-    for(x in errors) {
-      if(errors[x] == true) return true;
-    }
-    return false;
-  }();
-
+function handleResult(errors, data, fields) {
+  var anyError = checkIfAnyError(errors);
+  
   if(anyError) {
-    var messages = prepareErrorMessages(errors);
-    displayErrors(messages, "#alertContainer", "#addButton");
+    displayErrorMessages(errors)
     resetInputs();
   }
   else {
@@ -45,33 +59,18 @@ function addReceipt () {
   }
 }
 
-function loadReceipts() {
-  var data = {
-    id: getStoreId()
-  };
+function checkIfAnyError(errors) {
+  for(x in errors) {
+    if(errors[x] == true) return true;
+  }
+  
+  return false;
+}
 
-  fetch('/getReceipts/',
-  {
-    credentials: 'same-origin',
-    headers: {
-      'Accept': 'application/json',
-      'Content-Type': 'application/json'
-    },
-    method: 'post',
-    body: JSON.stringify(data)
-  }).then(function(response) {
-    return response.json();
-  }).then(function(data) {
-    if(data.error == true) { 
-      displayError(data.messages);
-    }
-    else if (data.empty == true) {
-      displayMessage("Brak paragonów do wyświetlenia");
-    }
-    else {
-      displayContent(data);
-    }
-  });
+function displayErrorMessages(errors) {
+  var messages = prepareErrorMessages(errors);
+  //call from viewController
+  displayErrors(messages, "#alertContainer", "#addButton");
 }
 
 function prepareErrorMessages(errors) {
@@ -91,7 +90,11 @@ function prepareErrorMessages(errors) {
 function sendData(data, fields) {
   data.storeId = getStoreId();
 
-  fetch('/addReceipt',
+  fetchAndHandleResponse(data, '/addReceipt/', handleAddReceiptResponse);
+}
+
+function fetchAndHandleResponse(data, url, responseFunction) {
+  fetch(url,
   {
     credentials: 'same-origin',
     headers: {
@@ -102,36 +105,65 @@ function sendData(data, fields) {
     body: JSON.stringify(data)
   }).then(function(response) {
     return response.json();
-  }).then(function(data) {
-    if(data.error == true) { 
-      setTimeout(function() {
-        resetInputs();
-        displayBackendErrors(data.messages, "#alertContainer", "#loadingSpinner", "#loadingContainer", "#addButton");
-      }, 700);
-    }
-    else {
-      setTimeout( function () {
-        resetAllInput(fields);
-        displaySuccessMessage("Paragon dodany pomyślnie!","#loadingContainer", "#alertContainer", "#addButton");
-      }, 700);
-    }
+  }).then(function(dataFromServer) {
+    responseFunction(dataFromServer);
   });
 }
 
-function resetInputs() {
-  //do nothing 
-}
-
-function resetAllInput(fields) {
-  for (var property in fields) {
-    if (fields.hasOwnProperty(property)) {
-      fields[property].value = '';
-    }
+function handleAddReceiptResponse(responseData) {
+  if(responseData.error == true) { 
+    displayBackendErrorsDelay(responseData.messages);
+    resetInputsDelay();
+  }
+  else {
+    displayBackendSuccessDelay();
+    ResetAllInputDelay();
   }
 }
 
-function getStoreId() {
-  return location.pathname.split('/')[2];
+function displayBackendErrorsDelay(messages) {
+  setTimeout(function() {
+    displayBackendErrors(messages, "#alertContainer", "#loadingSpinner", "#loadingContainer", "#addButton");
+  }, 700);
+}
+
+function ResetInputsDelay() {
+  setTimeout(function() {
+    resetInputs();
+  }, 700);
+}
+
+function displayBackendSuccessDelay() {
+  setTimeout( function () {
+    displaySuccessMessage("Paragon dodany pomyślnie!","#loadingContainer", "#alertContainer", "#addButton");
+  }, 700);
+}
+
+function ResetAllInputDelay() {
+  setTimeout(function() {
+    resetAllInput();
+  }, 700);
+}
+
+//Load receipts functions
+function loadReceipts() {
+  var data = {
+    id: getStoreId()
+  };
+  
+  fetchAndHandleResponse(data, '/getReceipts/', handleLoadReceiptsResponse)
+}
+
+function handleLoadReceiptsResponse(responseData) {
+  if(responseData.error == true) { 
+    displayError(responseData.messages);
+  }
+  else if (responseData.empty == true) {
+    displayMessage("Brak paragonów do wyświetlenia");
+  }
+  else {
+    displayContent(responseData);
+  }
 }
 
 function displayError(messages) {
@@ -197,7 +229,7 @@ function prepareArr(data) {
 }
 
 function prepareCardReceipt(obj) {
-  var button = obj.deleteable ? '<hr> <button onclick = "" class = "btn btn-outline-danger">Usuń</button>' : '';
+  var button = obj.deleteable ? `<hr> <button onclick = "deleteCardReceipt('${obj.id}')" class = "btn btn-outline-danger">Usuń</button>` : '';
 
   var oks = `<div class = "card">
               <div class = "card-body">
@@ -211,6 +243,36 @@ function prepareCardReceipt(obj) {
             </div>
             <hr>`;
 
-  //TODO: Delete function
   return oks;
+}
+
+//Delete receipts functions
+function deleteCardReceipt(receiptId) {
+  var storeId = getStoreId();
+
+  var data = {
+    storeId,
+    receiptId
+  };
+
+  console.log(data);
+}
+
+//Other functions
+function resetInputs() {
+  //do nothing (because of field characteristics)
+}
+
+function resetAllInput() {
+  var fields = getReceiptFields();
+
+  for (var property in fields) {
+    if (fields.hasOwnProperty(property)) {
+      fields[property].value = '';
+    }
+  }
+}
+
+function getStoreId() {
+  return location.pathname.split('/')[2];
 }

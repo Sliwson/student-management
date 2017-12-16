@@ -2,6 +2,7 @@ var databaseConnection = require('./databaseConnection');
 var storesManager = require('./storesManager');
 var loginSession = require('./loginSession');
 var indexFunctions = require('./indexFunctions');
+var ObjectID = require('mongodb').ObjectID;
 
 module.exports = {
     database: databaseConnection.db,
@@ -23,6 +24,7 @@ module.exports = {
             }
 
             var dataObject = {
+                id: new ObjectID(),
                 date: Date(),
                 ownerId: userId,
                 ownerName: userName,
