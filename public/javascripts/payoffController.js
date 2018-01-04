@@ -93,7 +93,7 @@ function sendData(data, fields) {
   fetchAndHandleResponse(data, '/addReceipt/', handleAddReceiptResponse);
 }
 
-function fetchAndHandleResponse(data, url, responseFunction) {
+function fetchAndHandleResponse(data, url, responseFunction, handleErrorFunction) {
   fetch(url,
   {
     credentials: 'same-origin',
@@ -107,6 +107,9 @@ function fetchAndHandleResponse(data, url, responseFunction) {
     return response.json();
   }).then(function(dataFromServer) {
     responseFunction(dataFromServer);
+  }).catch(function (error) {
+    if(handleErrorFunction != null)
+        handleErrorFunction(error);
   });
 }
 
@@ -118,6 +121,7 @@ function handleAddReceiptResponse(responseData) {
   else {
     displayBackendSuccessDelay();
     ResetAllInputDelay();
+    calculatePayoffsDelay();
   }
 }
 
@@ -145,13 +149,19 @@ function ResetAllInputDelay() {
   }, 700);
 }
 
+function calculatePayoffsDelay() {
+  setTimeout(function() {
+    calculatePayoffs();
+  }, 500);
+}
+
 //Load receipts functions
 function loadReceipts() {
   var data = {
     id: getStoreId()
   };
   
-  fetchAndHandleResponse(data, '/getReceipts/', handleLoadReceiptsResponse)
+  fetchAndHandleResponse(data, '/getReceipts/', handleLoadReceiptsResponse, handleLoadReceiptsError)
 }
 
 function handleLoadReceiptsResponse(responseData) {
@@ -159,17 +169,21 @@ function handleLoadReceiptsResponse(responseData) {
     displayError(responseData.messages);
   }
   else if (responseData.empty == true) {
-    displayMessage("Brak paragonów do wyświetlenia");
+    displayMessage("Brak paragonów do wyświetlenia", '#receipts-container');
   }
   else {
-    displayContent(responseData);
+    displayContent(responseData, '#receipts-container');
   }
+}
+
+function handleLoadReceiptsError(error) {
+  displayMessage("Błąd podczas łączenia z bazą danych.", '#receipts-container');
 }
 
 function displayError(messages) {
   var con = $('#receipts-container'); 
 
-  if(con.html() != '') {
+  if(con.html().trim() == '') {
     prepareContainer(messages, '#receipts-container');
     con.append('<hr>');
     con.fadeIn("400", "linear");
@@ -183,13 +197,13 @@ function displayError(messages) {
   } 
 }
 
-function displayMessage(message) {
-  var con = $('#receipts-container'); 
+function displayMessage(message, container) {
+  var con = $(container); 
   var mes = `<div>
             <span><p class = "text-secondary h5">${message}</p></span>
             </div>
             <hr>`;
-  if(con.html() != '') {
+  if(con.html().trim() == '') {
     con[0].innerHTML = mes;
     con.fadeIn("400", "linear");
   }
@@ -201,10 +215,10 @@ function displayMessage(message) {
   } 
 }
 
-function displayContent(data) {
-  var con = $('#receipts-container'); 
+function displayContent(data, container) {
+  var con = $(container); 
   var mes = prepareArr(data);
-  if(con.html() != '') {
+  if(con.html().trim() == '') {
     con[0].innerHTML = mes;
     con.fadeIn("400", "linear");
   }
@@ -248,15 +262,106 @@ function prepareCardReceipt(obj) {
 
 //Delete receipts functions
 function deleteCardReceipt(receiptId) {
-  var storeId = getStoreId();
+  var data = prepareDeleteData(receiptId);
 
-  var data = {
+  fetchAndHandleResponse(data, '/deleteReceipt/', handleDeleteResponse);
+}
+
+function handleDeleteResponse(responseData) {
+  if(responseData.error) {
+    displayMessage("Błąd podczas usuwania.", '#receipts-container');
+  }
+  else {
+    loadReceipts();
+  }
+}
+
+function prepareDeleteData(receiptId) {
+  var storeId = getStoreId();
+  return {
     storeId,
     receiptId
   };
-
-  console.log(data);
 }
+
+//calculate payoffs
+function calculatePayoffs() {
+  var data = prepareCalculationData();
+
+  fetchAndHandleResponse(data, '/calculatePayoffs/', handleCalculationResponse, handleCalculationError);
+}
+
+function prepareCalculationData() {
+  return {
+    storeId: getStoreId()
+  };
+}
+
+function handleCalculationResponse(responseData) {
+  if(responseData.error) {
+    displayMessage("Błąd podczas obliczeń.", "#payoff-container");
+  }
+  else if (responseData.empty) {
+    displayMessage("Brak rozliczeń.", "#payoff-container");
+  }
+  else {
+    if(responseData.users.length == 0) {
+      displayMessage("Brak rozliczeń.", "#payoff-container");
+    }
+    else {
+      displayUsersArray(responseData.users);
+    }
+  }
+}
+
+function handleCalculationError(errorMsg) {
+  displayMessage("Wystąpił błąd podczas połączenia z bazą danych.", "#payoff-container");
+}
+
+function displayUsersArray(users) {
+  var displayString = prepareDisplayString(users);
+  
+  fadePayoffCards(displayString);
+}
+
+function prepareDisplayString(users) {
+  var str = "";
+
+  for(var i = 0; i < users.length; i++) {
+    str += preparePayoffCard(users[i]);
+  }
+
+  return str;
+}
+
+function preparePayoffCard(userObject) {
+  var button = userObject.toReturn >= 0.01 ? '<button onclick = "" class = "btn btn-outline-success">Rozliczono!</button>' 
+                                           : '<button disabled=true class = "btn btn-outline-success">Rozliczono!</button>';
+
+  return `<div>
+    <span><p class = "text-secondary align-middle margin-bottom-custom mr-3 mt-1 mb-3 h4">${userObject.username} - ${userObject.toReturn} zł</p></span>
+      <div class = "mb-3">
+        ${button}
+      </div>
+    </div>
+    <hr class ="mt-2">
+    `;
+}
+
+function fadePayoffCards(message) {
+  var con = $('#payoff-container'); 
+  if(con.html().trim() == '') {
+    con[0].innerHTML = message;
+    con.fadeIn("400", "linear");
+  }
+  else {
+    con.fadeOut("400", "linear", function() {
+      con[0].innerHTML = message;
+      con.fadeIn("400", "linear");
+    })
+  } 
+}
+
 
 //Other functions
 function resetInputs() {

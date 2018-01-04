@@ -4,7 +4,7 @@ function changePage(page) {
       changeContent("home.html", page);
     break;
     case "payoff":
-      changeContent("payoff.html", page);
+      changeContent("payoff.html", page, [calculatePayoffs]);
     break;
     case "receipts":
       changeContent("receipts.html", "payoff", [loadReceipts]);

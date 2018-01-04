@@ -20,7 +20,10 @@ module.exports = {
         var emptyArr = [];
         var insertObject = {
           name: name,
-          admin: loginSession.getId(req),
+          admin: { 
+            id: loginSession.getId(req),
+            username: loginSession.getUsername(req)
+          },
           members: emptyArr,
           pending: emptyArr,
           rejected: emptyArr
@@ -50,6 +53,7 @@ module.exports = {
     });
   },
   deleteStore: function(req, storeId, callback) {
+    var db = this.database;
     var collection = this.database.get('stores');
 
     collection.find({_id: storeId}, {limit:1}).then((docs) => {
@@ -62,6 +66,8 @@ module.exports = {
       checkPrivileges(req,docs[0],newObj);
 
       if(newObj.privileges == 2) {
+        removeStoreDependencies(storeId, db);
+
         collection.remove({_id: storeId}).then((docs) => {
           return (callback(errors.noError));
         });
@@ -231,7 +237,6 @@ module.exports = {
       }
     });
   },
-
   getPrivileges: function(req, storeId, callback) {
     //grab all necessary fields from database, perform check function and return value
     var collection = this.database.get('stores');
@@ -242,12 +247,31 @@ module.exports = {
       checkPrivileges(req, docs[0], newObj);
       return callback(newObj.privileges);
     });
+  },
+
+  getUsers: function(req, storeId, callback) {
+    var collection = this.database.get('stores');
+
+    this.getPrivileges(req, storeId, function(privileges) {
+      if(privileges < 1) return callback(errors.permissionError);
+
+      collection.find({_id: storeId}, {limit:1}).then((docs) => {
+        if(docs.length == 0) return errors.noStoreError;
+  
+        var storeObject = docs[0];
+
+        var array = storeObject.members;
+        array.push(storeObject.admin);
+
+        callback({error: false, array});
+      });
+    });
   }
 };
 
 function checkPrivileges(req, storeObject, newObject) {
   var userId = loginSession.getId(req);
-  if(userId == storeObject.admin) {
+  if(userId == storeObject.admin.id) {
     newObject.privileges = 2; //admin
     return;
   }
@@ -316,3 +340,12 @@ var errors = {
     messages: ["Nie ma takiego składu."]
   }
 };
+
+function removeStoreDependencies(storeId, db) {
+  removePayoffs(storeId, db);
+}
+
+function removePayoffs(storeId, db) {
+  var collection = db.get('payoffs');
+  collection.remove({storeId: storeId});
+}

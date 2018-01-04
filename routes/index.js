@@ -166,6 +166,22 @@ router.post('/getReceipts/', function(req, res, next) {
   });  
 });
 
+/*POST Delete receipt*/
+router.post('/deleteReceipt/', function(req, res, next) {
+  var data = req.body;
+  payoff.delete(req, data, function(result) {
+    sendResHeader(res, result);
+  });  
+});
+
+/*POST Calculate payoffs*/
+router.post('/calculatePayoffs/', function(req, res, next) {
+  var data = req.body;
+  payoff.calculatePayoffs(req, data, function(result) {
+    sendResHeader(res, result);
+  });  
+});
+
 /*LOGOUT*/
 router.get('/logout/', function (req, res, next) {
   loginSession.logout(req);

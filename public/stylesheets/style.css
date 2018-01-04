@@ -1,5 +1,5 @@
 /*INDEX*/
-#loadingContainer, #loadingContainerLogin, #loadingContainerAdd, #pending-container, #receipts-container {
+#loadingContainer, #loadingContainerLogin, #loadingContainerAdd, #pending-container, #receipts-container, #payoff-container {
   display: none;
 }
 

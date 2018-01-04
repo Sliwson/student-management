@@ -32,7 +32,7 @@ module.exports = {
                 ammount: data.ammount,
                 description: data.description
             };
-            
+
             obj.updateCollection(data.storeId, dataObject, function(result) {
                  return callback(result);
              });
@@ -43,7 +43,7 @@ module.exports = {
         var collection = this.database.get('payoffs');
 
         collection.find({storeId: storeId},{limit:1}, function(e, docs) {
-            
+
             if(!indexFunctions.isEmpty(e)) {
                 return callback(errors.databaseError);
             }
@@ -63,14 +63,14 @@ module.exports = {
             else {
                 var obj = docs[0];
                 obj.receipts.push(objectData);
-    
-                collection.update({storeId: storeId}, obj); 
-                return callback({error: false});  
-            } 
+
+                collection.update({storeId: storeId}, obj);
+                return callback({error: false});
+            }
         });
     },
 
-    getReceipts: function(req, storeId, callback) {
+    getReceipts: function(req, storeId, deleteIds, callback) {
         var obj = this;
         storesManager.getPrivileges(req, storeId, function(privilegeId) {
 
@@ -87,7 +87,7 @@ module.exports = {
             var collection = obj.database.get('payoffs');
 
             collection.find({storeId: storeId}, {limit: 1}, function(e, docs) {
-                
+
                 if(!indexFunctions.isEmpty(e)) {
                     return callback(errors.databaseError);
                 }
@@ -99,31 +99,49 @@ module.exports = {
                 var receipts = docs[0].receipts;
                 var transfers = docs[0].transfers;
 
-                if(receipts.length == 0 && transfer.length == 0) {
+                if(receipts.length == 0 && transfers.length == 0) {
                     return callback (errors.empty);
                 }
-                
-                for(var i = 0; i < receipts.length; i++) {
-                    receipts[i].deleteable = deleteable(userId, receipts[i].ownerId);
-                    delete receipts[i].ownerId;
+
+                if (deleteIds) {
+                  deleteIdsReceipts(receipts, userId);
+                  deleteIdsTransfers(transfers, userId);
                 }
 
-                for(var i = 0; i < transfers.length; i++) {
-                    transfer[i].deleteable = deleteable(userId, giverId);
-                    delete transfers[i].giverId;
-                    delete transfers[i].recieverId;
-                }
-
-                var data = {
-                    error: false,
-                    empty: false,
-                    receipts,
-                    transfers
-                }
+                var data = createProperData(receipts, transfers);
 
                 return callback(data);
             });
-        });    
+        });
+    },
+
+    deleteReceipt: function(req, data, callback) {
+        var collection = this.database.get('payoffs');
+
+        storesManager.getPrivileges(req, data.storeId, function(privilegeId) {
+            if(privilegeId <= 0) {
+                return callback(errors.unauthOperation);
+            }
+
+            collection.find({storeId: data.storeId}, {limit: 1}, function(e, docs) {
+                if(!indexFunctions.isEmpty(e)) {
+                    return callback(errors.databaseError);
+                }
+
+                if(docs.length == 0) {
+                    return callback (errors.databaseError);
+                }
+
+                if(deleteReceiptById(docs[0].receipts, data.receiptId)) {
+                    updateObject(collection, docs[0], data.storeId, function(result) {
+                        return callback(result);
+                    });
+                }
+                else {
+                    return callback(errors.databaseError);
+                }
+            });
+        });
     }
 };
 
@@ -136,17 +154,67 @@ var errors = {
         error: true,
         messages: ["Błąd podczas połączenia z bazą danych."]
     },
+    noReceiptError: {
+        error: true,
+        messages: ["Nie ma takiego paragonu."]
+    },
     empty: {
         error: false,
         empty: true
+    },
+    noError: {
+        error: false
     }
 };
 
+function deleteIdsReceipts(receipts, userId) {
+    for(var i = 0; i < receipts.length; i++) {
+        receipts[i].deleteable = deleteable(userId, receipts[i].ownerId);
+        delete receipts[i].ownerId;
+    }
+}
+
+function deleteIdsTransfers(transfers, userId) {
+    for(var i = 0; i < transfers.length; i++) {
+        transfer[i].deleteable = deleteable(userId, giverId);
+        delete transfers[i].giverId;
+        delete transfers[i].recieverId;
+    }
+}
+
 function deleteable(userId, ownerId) {
-    if(userId == ownerId) { 
+    if(userId == ownerId) {
         return true;
     }
     else {
         return false;
     }
+}
+
+function createProperData(receipts, transfers) {
+    return {
+        error: false,
+        empty: false,
+        receipts,
+        transfers
+    };
+}
+
+function deleteReceiptById(receipts, receiptId) {
+    for(var i = 0; i < receipts.length; i++)
+    {
+        if(receipts[i].id == receiptId) {
+            receipts.splice(i, 1);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+function updateObject(collection, object, storeId, callback) {
+    collection.update({storeId: storeId}, object, function(error) {
+        console.log(error);
+        return callback(errors.noError);
+    });
 }
